@@ -36,3 +36,6 @@ data/geo/cinematic/
 # 시네마틱 근경 고도(Copernicus GLO-30 조각)·하늘 HDRI(Poly Haven CC0 원본) - blender/prep_terrain.py·prep_sky.py가 받음
 data/geo/copdem30/
 data/geo/hdri/
+# 예고편 재료: 목소리 원본(다듬기 전)·시네마틱 영상(3D 보류, 84MB·61MB - GitHub 50MB 경고)은 로컬에만
+public/teaser*/**/*.raw.wav
+public/teaser*/*.mp4

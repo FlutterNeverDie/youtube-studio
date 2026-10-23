@@ -1,0 +1,644 @@
+{
+ "version": 1,
+ "_설명": "예고편: 칼카 1223 - 수부타이의 거짓 후퇴, 길게 늘어진 연합군 선봉을 끊어 가둠 (세로, 동쪽이 위). marks = 내레이션 시작 | 몽골 세 무리 press:false (포위로 일부러 겹침)",
+ "year": 1223,
+ "theme": "film",
+ "terrain": true,
+ "relief": 0.85,
+ "marks": {
+  "lead": 0.088,
+  "retreat": 0.156,
+  "chase": 0.272,
+  "turn": 0.407,
+  "close": 0.475,
+  "explain": 0.567,
+  "trapped": 0.825,
+  "lesson": 0.93
+ },
+ "camera": [
+  {
+   "t": 0,
+   "at": [
+    36.4,
+    47.51
+   ],
+   "zoom": 52,
+   "tilt": 34,
+   "heading": 90
+  },
+  {
+   "t": "lead",
+   "at": [
+    36.5,
+    47.51
+   ],
+   "zoom": 54,
+   "tilt": 36,
+   "heading": 90,
+   "ease": "inOut"
+  },
+  {
+   "t": "chase",
+   "at": [
+    36.55,
+    47.51
+   ],
+   "zoom": 40,
+   "tilt": 38,
+   "heading": 90,
+   "ease": "inOut"
+  },
+  {
+   "t": "turn",
+   "at": [
+    36.6,
+    47.51
+   ],
+   "zoom": 46,
+   "tilt": 42,
+   "heading": 90,
+   "ease": "inOut"
+  },
+  {
+   "t": 1,
+   "at": [
+    36.55,
+    47.51
+   ],
+   "zoom": 50,
+   "tilt": 46,
+   "heading": 90,
+   "ease": "inOut"
+  }
+ ],
+ "sides": {
+  "mongol": {
+   "color": "#7a2e22",
+   "flag": "tug"
+  },
+  "rus": {
+   "color": "#3f5878",
+   "flag": "cross",
+   "armor": true,
+   "horse": "#5e4632",
+   "team": "rus"
+  },
+  "cuman": {
+   "color": "#c29a46",
+   "flag": "pennant",
+   "horse": [
+    "#e8e0cc",
+    "#d9cdb4",
+    "#a07a52"
+   ],
+   "team": "rus"
+  }
+ },
+ "lines": [
+  {
+   "style": "river",
+   "path": [
+    [
+     35.05,
+     48.45
+    ],
+    [
+     35.1,
+     47.85
+    ],
+    [
+     34.6,
+     47.45
+    ],
+    [
+     33.6,
+     46.85
+    ]
+   ]
+  },
+  {
+   "style": "river",
+   "path": [
+    [
+     37.6,
+     47.8
+    ],
+    [
+     37.48,
+     47.55
+    ],
+    [
+     37.55,
+     47.3
+    ],
+    [
+     37.6,
+     47.1
+    ]
+   ]
+  }
+ ],
+ "arrows": [
+  {
+   "side": "mongol",
+   "style": "retreat",
+   "path": [
+    [
+     36.365,
+     47.517
+    ],
+    [
+     36.625,
+     47.517
+    ],
+    [
+     36.82,
+     47.517
+    ]
+   ],
+   "grow": [
+    "retreat",
+    "chase"
+   ],
+   "fade": [
+    "turn",
+    "turn+0.04"
+   ]
+  },
+  {
+   "side": "rus",
+   "style": "advance",
+   "path": [
+    [
+     35.845,
+     47.51
+    ],
+    [
+     36.17,
+     47.51
+    ],
+    [
+     36.43,
+     47.51
+    ]
+   ],
+   "grow": [
+    "chase",
+    "turn"
+   ],
+   "fade": [
+    "close",
+    "close+0.05"
+   ]
+  },
+  {
+   "side": "mongol",
+   "style": "pincer",
+   "path": [
+    [
+     36.852,
+     47.712
+    ],
+    [
+     36.593,
+     47.685
+    ],
+    [
+     36.333,
+     47.569
+    ]
+   ],
+   "grow": [
+    "close",
+    "trapped"
+   ]
+  },
+  {
+   "side": "mongol",
+   "style": "pincer",
+   "path": [
+    [
+     36.852,
+     47.322
+    ],
+    [
+     36.593,
+     47.341
+    ],
+    [
+     36.333,
+     47.452
+    ]
+   ],
+   "grow": [
+    "close",
+    "trapped"
+   ]
+  }
+ ],
+ "units": [
+  {
+   "id": "m-center",
+   "side": "mongol",
+   "kind": "cavalry",
+   "spread": 0.22,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      36.8,
+      47.51
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "retreat",
+     "at": [
+      36.8,
+      47.51
+     ],
+     "state": "march"
+    },
+    {
+     "t": "chase",
+     "at": [
+      37.05,
+      47.51
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      37.15,
+      47.51
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "close",
+     "at": [
+      37.15,
+      47.51
+     ],
+     "state": "charge"
+    },
+    {
+     "t": "trapped",
+     "at": [
+      36.9,
+      47.51
+     ],
+     "state": "charge"
+    }
+   ],
+   "swarm": {
+    "n": 220,
+    "radius": 0.189
+   },
+   "face": {
+    "char": "subutai",
+    "mood": "front",
+    "show": [
+     "lead",
+     "turn"
+    ],
+    "size": 1.7
+   },
+   "press": false,
+   "layer": 1
+  },
+  {
+   "id": "m-north",
+   "side": "mongol",
+   "kind": "horse-archer",
+   "spread": 0.17,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      36.72,
+      47.76
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "retreat",
+     "at": [
+      36.72,
+      47.76
+     ],
+     "state": "march"
+    },
+    {
+     "t": "chase",
+     "at": [
+      36.97,
+      47.8
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      37.05,
+      47.8
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "close",
+     "at": [
+      37.05,
+      47.8
+     ],
+     "state": "march"
+    },
+    {
+     "t": 0.65,
+     "at": [
+      36.6,
+      47.95
+     ],
+     "state": "march"
+    },
+    {
+     "t": "trapped",
+     "at": [
+      36.2,
+      47.72
+     ],
+     "state": "hold"
+    }
+   ],
+   "swarm": {
+    "n": 140,
+    "radius": 0.14
+   },
+   "press": false,
+   "layer": 1
+  },
+  {
+   "id": "m-south",
+   "side": "mongol",
+   "kind": "horse-archer",
+   "spread": 0.17,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      36.72,
+      47.26
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "retreat",
+     "at": [
+      36.72,
+      47.26
+     ],
+     "state": "march"
+    },
+    {
+     "t": "chase",
+     "at": [
+      36.97,
+      47.22
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      37.05,
+      47.22
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "close",
+     "at": [
+      37.05,
+      47.22
+     ],
+     "state": "march"
+    },
+    {
+     "t": 0.65,
+     "at": [
+      36.6,
+      47.07
+     ],
+     "state": "march"
+    },
+    {
+     "t": "trapped",
+     "at": [
+      36.2,
+      47.3
+     ],
+     "state": "hold"
+    }
+   ],
+   "swarm": {
+    "n": 140,
+    "radius": 0.14
+   },
+   "press": false,
+   "layer": 1
+  },
+  {
+   "id": "galich",
+   "side": "rus",
+   "kind": "infantry",
+   "spread": 0.2,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      35.78,
+      47.517
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "chase+0.02",
+     "at": [
+      35.78,
+      47.517
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      35.98,
+      47.517
+     ],
+     "state": "hold"
+    },
+    {
+     "t": 1,
+     "at": [
+      35.98,
+      47.517
+     ],
+     "state": "hold"
+    }
+   ],
+   "swarm": {
+    "n": 420,
+    "radius": 0.25
+   }
+  },
+  {
+   "id": "cuman",
+   "side": "cuman",
+   "kind": "cavalry",
+   "spread": 0.17,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      36.05,
+      47.51
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "chase",
+     "at": [
+      36.05,
+      47.51
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      36.508,
+      47.51
+     ],
+     "state": "hold"
+    },
+    {
+     "t": 1,
+     "at": [
+      36.508,
+      47.51
+     ],
+     "state": "hold"
+    }
+   ],
+   "swarm": {
+    "n": 420,
+    "radius": 0.25
+   },
+   "face": {
+    "char": "mstislav_bold",
+    "mood": "angry",
+    "show": [
+     "chase",
+     "close"
+    ],
+    "size": 1.5
+   },
+   "count": [
+    {
+     "t": 0,
+     "n": 420
+    },
+    {
+     "t": "close+0.08",
+     "n": 420
+    },
+    {
+     "t": 0.76,
+     "n": 300
+    },
+    {
+     "t": 0.9,
+     "n": 70
+    },
+    {
+     "t": 1,
+     "n": 40
+    }
+   ],
+   "fallFrom": "edge"
+  },
+  {
+   "id": "kiev",
+   "side": "rus",
+   "kind": "infantry",
+   "spread": 0.2,
+   "path": [
+    {
+     "t": 0,
+     "at": [
+      35.4,
+      47.523
+     ],
+     "state": "hold"
+    },
+    {
+     "t": "chase+0.05",
+     "at": [
+      35.4,
+      47.523
+     ],
+     "state": "march"
+    },
+    {
+     "t": "turn",
+     "at": [
+      35.4,
+      47.523
+     ],
+     "state": "hold"
+    },
+    {
+     "t": 1,
+     "at": [
+      35.4,
+      47.523
+     ],
+     "state": "hold"
+    }
+   ],
+   "swarm": {
+    "n": 480,
+    "radius": 0.27
+   }
+  }
+ ],
+ "markers": [
+  {
+   "kind": "battle",
+   "at": [
+    36.495,
+    47.51
+   ],
+   "show": [
+    "close+0.08",
+    1
+   ]
+  },
+  {
+   "kind": "face",
+   "at": [
+    36.462,
+    47.555
+   ],
+   "char": "koten",
+   "mood": "shocked",
+   "side": "cuman",
+   "show": [
+    "close+0.04",
+    "trapped"
+   ],
+   "size": 1.5
+  }
+ ]
+}

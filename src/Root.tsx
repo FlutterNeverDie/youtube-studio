@@ -1,9 +1,12 @@
 import { Composition, Still } from "remotion";
 import { Banner } from "./channel/Banner";
 import { Profile, Watermark } from "./channel/Profile";
+import { MongolTeaser, TEASER_FRAMES } from "./shorts/MongolTeaser";
+import { KalkaTeaser, KALKA_TEASER_FRAMES } from "./shorts/KalkaTeaser";
 import { Architecture, UserFlow } from "./channel/AuditDiagrams";
 import { Episode, timelineFrames, type Timeline } from "./episode/Episode";
 import { Thumb } from "./episode/Thumb";
+import { ShortThumb } from "./shorts/ShortThumb";
 import mongol01pilot from "../public/ep/mongol-01/pilot/timeline.json";
 import mongol01 from "../public/ep/mongol-01/ep/timeline.json";
 import mongol02 from "../public/ep/mongol-02/ep/timeline.json";
@@ -37,6 +40,10 @@ export const Root = () => (
       <Composition key={v.id} id={`Shorts-${v.id}`} component={Timelapse} durationInFrames={framesOf(v.id)} fps={shorts.fps} width={shorts.width} height={shorts.height} defaultProps={{ id: v.id }} />
     ))}
     <Composition id="Shorts-quiz" component={QuizV} durationInFrames={QV_FRAMES} fps={shorts.fps} width={shorts.width} height={shorts.height} />
+    <Composition id="Shorts-mongol-teaser" component={MongolTeaser} durationInFrames={TEASER_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Shorts-kalka-teaser" component={KalkaTeaser} durationInFrames={KALKA_TEASER_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Shorts-kalka-teaser-en" component={KalkaTeaser} durationInFrames={KALKA_TEASER_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ lang: "en" as const }} />
+    <Composition id="Shorts-kalka-teaser-es" component={KalkaTeaser} durationInFrames={KALKA_TEASER_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ lang: "es" as const }} />
     <Composition id="Shorts-sameyear" component={SameYear} durationInFrames={SAMEYEAR_FRAMES} fps={shorts.fps} width={shorts.width} height={shorts.height} />
       {(["cine", "ink", "art"] as const).map((look) => (
       <Still key={look} id={`ChannelBanner-${look}`} component={Banner} width={2560} height={1440} defaultProps={{ look }} />
@@ -52,6 +59,7 @@ export const Root = () => (
     <Composition id="Mongol01Pilot" component={Episode} durationInFrames={timelineFrames(mongol01pilot as Timeline)} fps={30} width={1920} height={1080} defaultProps={{ timeline: mongol01pilot as Timeline }} />
     <Composition id="Mongol01" component={Episode} durationInFrames={timelineFrames(mongol01 as Timeline)} fps={30} width={1920} height={1080} defaultProps={{ timeline: mongol01 as Timeline }} />
     {/* 언어별 썸네일은 이 하나로 --props를 바꿔 찍는다 (scripts/thumbs.mjs) */}
+    <Still id="ShortThumb" component={ShortThumb} width={1080} height={1920} defaultProps={{ img: "ep/teaser/maps/kalka/01250.jpg", zoom: 1.6, focusY: 52, band: "1223", top: "They ran away", bottom: "On purpose" }} />
     <Still id="Thumb" component={Thumb} width={1280} height={720} defaultProps={{ map: "clean/mg-wide/1260.png", face: "art/mongol/genghis-portrait.jpg", faceFocus: "50% 25%", top: "From hunted orphan", big: "To world conqueror", look: "red" as const }} />
     <Still id="Mongol01-ThumbA" component={Thumb} width={1280} height={720} defaultProps={{ map: "clean/mg-wide/1260.png", face: "art/mongol/genghis-portrait.jpg", faceFocus: "50% 25%", top: "From hunted orphan", big: "To world conqueror", look: "red" as const }} />
     <Still id="Mongol01-ThumbB" component={Thumb} width={1280} height={720} defaultProps={{ map: "clean/mg-wide/1260.png", face: "art/mongol/genghis-portrait.jpg", faceFocus: "50% 25%", top: "1 million vs 100 million", big: "How did he win?", look: "red" as const }} />
