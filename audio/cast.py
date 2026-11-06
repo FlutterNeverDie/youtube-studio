@@ -1,12 +1,12 @@
 # 배역 목소리 오디션: cast.json의 배역마다 대표 대사를 읽혀서 높낮이·울림을 입힌다
-# .venv/bin/python -I audio/cast.py [배역키...]  ->  public/voices/cast/<키>.wav + hwm/tts/배역 목소리/<한글 이름>.wav
+# .venv/bin/python -I audio/cast.py [배역키...]  ->  public/voices/cast/<키>.wav + ~/ReStory/tts/배역 목소리/<한글 이름>.wav
 # 목소리는 scripts/tts.mjs로 받는다(무료 한도 지킴이·캐시 그대로). Chirp 3 HD는 높낮이 조절이 안 돼서 여기서 직접 바꾼다
-import json, os, shutil, subprocess, sys, wave
+import json, os, shutil, subprocess, sys, tempfile, wave
 from pathlib import Path
 import numpy as np
 
 CODE = Path(__file__).resolve().parent.parent
-HOME = Path(os.environ.get("HWM", Path.home() / "hwm"))  # 산출물 폴더 (저장소 위치와 상관없이)
+HOME = Path(os.environ.get("HWM", Path.home() / "ReStory"))  # 산출물 폴더 (저장소 위치와 상관없이)
 CAST = json.loads((CODE / "cast.json").read_text())["roles"]
 RAW = CODE / "audio/.cast-raw"
 OUT = CODE / "public/voices/cast"
@@ -45,14 +45,21 @@ def stretch(x, factor, n=2048, h=512):
     return out / (win**2).sum() * h
 
 
-def shift(x, semis):
-    """음 높이만 semis 반음 (길이 그대로)"""
+def shift(x, sr, semis):
+    """음 높이만 semis 반음 (길이 그대로). 2026-11-06 사용자가 고른 내레이터 샘플과 같은 ffmpeg 방식"""
     if not semis:
         return x
-    r = 2 ** (semis / 12)
-    y = stretch(np.concatenate([x, np.zeros(2048)]), r)
-    idx = np.arange(0, len(y) - 1, r)
-    return np.interp(idx, np.arange(len(y)), y)[: len(x)]
+    sys.path.insert(0, str(CODE / "scripts"))
+    import tools
+
+    f = 2 ** (semis / 12)
+    with tempfile.TemporaryDirectory() as td:  # 렌더 도구의 ffmpeg는 raw 파이프를 못 받아 wav 파일로
+        a, b = Path(td) / "a.wav", Path(td) / "b.wav"
+        write(a, x, sr)
+        subprocess.run([str(tools.ffmpeg()), "-y", "-hide_banner", "-loglevel", "error", "-i", str(a),
+                        "-af", f"asetrate={round(sr * f)},aresample={sr},atempo={1 / f:.6f}", "-ar", str(sr), "-ac", "1", str(b)],
+                       capture_output=True, check=True, cwd=tools.ffmpeg_dir())
+        return read(b)[0]
 
 
 def reverb(x, sr, seconds, mix, dark=False):
@@ -161,7 +168,7 @@ def build(key):
     raw = RAW / f"{key}.wav"
     subprocess.run(["node", str(CODE / "scripts/tts.mjs"), "say", r["line"], str(raw), r["voice"], str(r["rate"])], check=True)
     x, sr = read(raw)
-    y = level(fx(shift(gate(clarity(x, sr), sr), r["pitch"]), sr, r["fx"]))
+    y = level(fx(shift(gate(clarity(x, sr), sr), sr, r["pitch"]), sr, r["fx"]))
     write(OUT / f"{key}.wav", y, sr)
     DELIVER.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(OUT / f"{key}.wav", DELIVER / f"{r['ko'].replace('/', '·')}.wav")

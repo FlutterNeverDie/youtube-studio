@@ -56,6 +56,7 @@ def make_line(r, text, lang, raw, extra=""):
     RAW.mkdir(exist_ok=True)
     engine = voice_line(r, text, lang, raw, extra)
     x, sr = C.read(raw)
+    x = C.shift(x, sr, r.get("pitch", 0))
     return C.tail(C.level(C.gate(C.clarity(x, sr), sr)), sr), sr, engine  # 끝 지지직 정리 (scripts/check-voice.py가 다시 확인)
 
 
@@ -79,8 +80,6 @@ def main():
         sc = {**s, "vo": None, "vo_i18n": {}, "acted": False, "dur": {}, "engine": {}}  # engine = 언어별로 목소리를 만든 모델 (끝 지지직 등 모델별 문제 추적, 2026-10-21)
         if s["show"]["type"] == "mapscene":  # 기울인 지도 장면: 찍은 연속 그림 폴더 (scripts/map-scene.mjs가 이 장면 frames만큼 찍음)
             sc["show"] = {**s["show"], "dir": f"ep/{src.parent.name}/maps/{s['show']['scene']}"}
-        if s["show"]["type"] == "cinematic":  # Blender 시네마틱 장면
-            sc["show"] = {**s["show"], "dir": f"ep/{src.parent.name}/{src.stem}/cinematic/{i:02d}"}
         if s["show"]["type"] == "art" and s["show"].get("parallax"):  # 옛 그림 2.5D: scripts/scene-frames.py가 찍음
             sc["show"] = {**s["show"], "dir": f"ep/{src.parent.name}/{src.stem}/parallax/{i:02d}"}
         if s.get("text"):
