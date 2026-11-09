@@ -1,30 +1,416 @@
 {
- "_설명": "영어 대사 규칙 - 지금은 TTS 발음 위험만 (말투는 대본 단계에서 Claude가 봄). scripts/check-text.py가 씀",
+ "_설명": "영어 대사 규칙 - TTS 발음 위험 + AI 티·번역투(2026-11-09, 전부 경고. 결과 보고 오류로 올릴지 정함). 사람이 판단할 것은 en.md \"AI 티 · 번역투\". scripts/check-text.py가 씀, 고치면 python3 scripts/check-text.py --selftest",
  "lang": "en",
  "rules": [
   {
-   "id": "en-paren", "group": "발음", "kind": "pron", "level": "warn", "scope": "all", "position": "anywhere",
+   "id": "en-paren",
+   "group": "발음",
+   "kind": "pron",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
    "pattern": "[()\\[\\]]|[~/&*#@]",
    "msg": "괄호·기호는 TTS가 읽거나 이상하게 끊음 - 말로 풀어 쓰기",
-   "bad": ["Temüjin (later Genghis Khan) rode out."], "good": ["Temüjin, the future Genghis Khan, rode out."]
+   "bad": [
+    "Temüjin (later Genghis Khan) rode out."
+   ],
+   "good": [
+    "Temüjin, the future Genghis Khan, rode out."
+   ]
   },
   {
-   "id": "en-abbr", "group": "발음", "kind": "pron", "level": "warn", "scope": "all", "position": "anywhere",
+   "id": "en-abbr",
+   "group": "발음",
+   "kind": "pron",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
    "pattern": "\\b(?:c\\.|ca\\.|approx\\.|vs\\.|etc\\.|e\\.g\\.|i\\.e\\.|St\\.|Mt\\.|Dr\\.)(?=\\s|$)",
    "msg": "줄임말 - TTS가 철자로 읽을 수 있음, 풀어 쓰기 (c. → around)",
-   "bad": ["He was born c. 1162."], "good": ["He was born around 1162."]
+   "bad": [
+    "He was born c. 1162."
+   ],
+   "good": [
+    "He was born around 1162."
+   ]
   },
   {
-   "id": "en-caps", "group": "발음", "kind": "pron", "level": "warn", "scope": "all", "position": "anywhere",
+   "id": "en-caps",
+   "group": "발음",
+   "kind": "pron",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
    "pattern": "\\b(?![IVXL]+\\b)(?!AD\\b|BC\\b)[A-Z]{2,}\\b",
    "msg": "대문자 줄임말 - TTS가 철자로 읽음 (강조라면 소문자로)",
-   "bad": ["They did NOT stop."], "good": ["They did not stop.", "In 1223 AD."]
+   "bad": [
+    "They did NOT stop."
+   ],
+   "good": [
+    "They did not stop.",
+    "In 1223 AD."
+   ]
   },
   {
-   "id": "en-roman", "group": "발음", "kind": "pron", "level": "warn", "scope": "all", "position": "anywhere",
+   "id": "en-roman",
+   "group": "발음",
+   "kind": "pron",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
    "pattern": "\\b[IVXL]{2,}\\b",
    "msg": "로마 숫자 - TTS 읽기 확인, 필요하면 audio/pron.json",
-   "bad": ["Muhammad II fled."], "good": ["Muhammad the Second fled."]
+   "bad": [
+    "Muhammad II fled."
+   ],
+   "good": [
+    "Muhammad the Second fled."
+   ]
+  },
+  {
+   "id": "en-not-just",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "overuse": 1,
+   "flags": "i",
+   "pattern": "\\b(?:is|are|was|were|does|do|did)n['’]t (?:just|only|simply|merely)\\b|\\bnot (?:just|only|simply|merely)\\b|\\b(?:is|are|was|were)n['’]t (?:a|an|the|about)\\b[^.!?]*[.!?]\\s+(?:it|that|this)(?:['’]s| is| was)\\b|\\b(?:it|that|this)(?:['’]s| is| was) not (?:a|an|the|about)\\b[^.!?]*[.!?]\\s+(?:it|that|this)(?:['’]s| is| was)\\b",
+   "msg": "\"X isn't just Y. It's Z\" 틀이 편에 2번 이상 - 챗GPT 글의 대표 틀. 훅에서 한 번이면 두고, 끝맺음에서 되풀이하지 않기 (그냥 Z라고 말하기)",
+   "bad": [
+    "Diabetes isn't just too much sugar. It's a key that stopped turning.",
+    "It's not a pipe filling up. It's a plaque breaking.",
+    "The Mongols weren't only fighters, but builders."
+   ],
+   "good": [
+    "Diabetes is a key that stopped turning.",
+    "Many cells can't just let sugar in.",
+    "It isn't much. But it stays."
+   ]
+  },
+  {
+   "id": "en-signpost",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "flags": "i",
+   "pattern": "\\bhere['’]s (?:the (?:\\w+ )?(?:part|thing|catch|twist|kicker)|where (?:it|things) gets?)\\b|\\b(?:this|that) is where (?:it|things) gets?\\b|\\bthe (?:strange|weird|wild|crazy|surprising|interesting|shocking|fascinating|scary|funny) (?:part|thing)\\b",
+   "msg": "\"Here's the strange part\" 같은 예고 문구 - 놀랍다고 말하지 말고 바로 놀라운 사실을 말하기 (쇼츠 여러 편에 똑같이 나옴)",
+   "bad": [
+    "Here's the strange part. Those needles can sit there for years.",
+    "And here's the catch: these plaques often don't narrow the artery.",
+    "This is where it gets interesting."
+   ],
+   "good": [
+    "Those needles can sit there for years, and you won't feel a thing.",
+    "Here's how they did it.",
+    "Here's the plan."
+   ]
+  },
+  {
+   "id": "en-hedge-exact",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "flags": "i",
+   "pattern": "\\b(?:about|around|roughly|nearly|approximately|almost|some)\\s+(\\d+\\.(?:\\d{2,}|[1-46-9]))(?!\\d)",
+   "suggest": [
+    "\\1"
+   ],
+   "msg": "소수점까지 정확한 숫자에 about·around - 정확하면 그대로 말하고, 어림이면 둥근 수로 (about 7.74 million → 7.74 million 또는 nearly 8 million)",
+   "bad": [
+    "Worldwide, about 7.74 million people live with it.",
+    "Above about 6.8 milligrams per deciliter, it crystallizes."
+   ],
+   "good": [
+    "Worldwide, 7.74 million people live with it.",
+    "Nearly 8 million people live with it.",
+    "About 2.5 million people.",
+    "Nearly 80 percent of cases."
+   ],
+   "fixes": [
+    [
+     "Worldwide, about 7.74 million people live with it.",
+     "Worldwide, 7.74 million people live with it."
+    ],
+    [
+     "Above about 6.8 milligrams per deciliter, it crystallizes.",
+     "Above 6.8 milligrams per deciliter, it crystallizes."
+    ]
+   ]
+  },
+  {
+   "id": "en-hedge-stack",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "flags": "i",
+   "pattern": "\\b(?:about|around|roughly|nearly|almost|approximately|an estimated|some)\\s+(?:\\d|a (?:third|quarter|half|dozen|hundred|thousand|million|billion)\\b|half\\b|twice\\b|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds|thousands|dozens|tens)\\b)[^.!?]*?\\b(?:about|around|roughly|nearly|almost|approximately|an estimated|some)\\s+(?:\\d|a (?:third|quarter|half|dozen|hundred|thousand|million|billion)\\b|half\\b|twice\\b|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds|thousands|dozens|tens)\\b)",
+   "msg": "한 문장에 어림말(about·roughly·nearly…) 두 번 - 사람은 한 번만 어림하고 나머지는 딱 잘라 말함 (번역하면 \"정도…쯤\"이 겹침)",
+   "bad": [
+    "On average, about 116 in your twenties, and about 75 past seventy.",
+    "It holds about one teaspoon, and a bowl of rice brings roughly ten times that."
+   ],
+   "good": [
+    "On average it's 116 in your twenties and 75 past seventy.",
+    "It holds about one teaspoon. A bowl of rice brings ten times that."
+   ]
+  },
+  {
+   "id": "en-hedge-many",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "overuse": 4,
+   "flags": "i",
+   "pattern": "\\b(?:about|around|roughly|nearly|almost|approximately|an estimated|some)\\s+(?:\\d|a (?:third|quarter|half|dozen|hundred|thousand|million|billion)\\b|half\\b|twice\\b|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds|thousands|dozens|tens)\\b)",
+   "msg": "숫자 앞 어림말(about·around·nearly…)이 편에 너무 많음 - 출처가 추정치인 것만 남기고, 놀라운 숫자는 딱 잘라 한 번 (TTS로 들으면 about이 계속 들림)",
+   "bad": [
+    "About nine in ten don't know they have it."
+   ],
+   "good": [
+    "Nine in ten don't know they have it.",
+    "Almost all of it goes back."
+   ]
+  },
+  {
+   "id": "en-so-question",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "narration",
+   "position": "anywhere",
+   "overuse": 3,
+   "pattern": "(?:^|(?<=[.!?…]\\s))(?:So|But|And),? (?:how|why|what|who|where|when)\\b[^.!?]*\\?",
+   "msg": "\"So how/why…?\" 질문으로 장을 여는 틀이 편에 많음 - 같은 틀 질문은 훅 하나·장 하나 정도, 나머지는 바로 사실로 시작",
+   "bad": [
+    "So why don't you feel it?",
+    "But how do tens of thousands of horsemen cross a desert?"
+   ],
+   "good": [
+    "Why the big toe? That still isn't settled.",
+    "So he looked to another kingdom."
+   ]
+  },
+  {
+   "id": "en-inversion",
+   "group": "번역투",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "overuse": 2,
+   "flags": "i",
+   "pattern": "(?:^|(?<=[.!?…]\\s))(?:(?:but|and|yet|then|just|right|deep|far) )?(?:in|on|at|inside|outside|over|under|beneath|behind|between|beyond|above|below|across|along|around|near|among|within|here|there|to the \\w+)\\b[^.!?,]*?\\b(?:sits|sat|stood|stands|lies|lay|loomed|looms|rose|rises)\\s+(?:a|an|the|another|its|his|their)\\b",
+   "msg": "장소 먼저 + 동사 + 주어 뒤집기(\"At the edge of the desert stood a small town\")가 편에 많음 - 동화책 말투이고 한국어 어순(장소 먼저) 그대로. 주어부터: \"A small town sat at the edge of the desert.\"",
+   "bad": [
+    "At the edge of the desert stood a small town.",
+    "Just behind your stomach sits a large gland, the pancreas."
+   ],
+   "good": [
+    "A small town sat at the edge of the desert.",
+    "Your pancreas sits just behind your stomach.",
+    "In 1215, they lay the planks over the moat, then crossed."
+   ]
+  },
+  {
+   "id": "en-q-reveal",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "overuse": 1,
+   "pattern": "(?:^|(?<=[.!?…]\\s))(?:The|And the|But the|His|Their|Its|Her) (?:\\w+ ){0,2}(?:reason|result|answer|catch|problem|twist|kicker|secret|solution|verdict|outcome|cost|price|trick|goal)\\?",
+   "msg": "\"The result? …\" 한 낱말 질문 뒤 답 - 편에 2번 넘으면 AI 글 틀. 한 번만, 나머지는 그냥 문장으로",
+   "bad": [
+    "The biggest reason? The Jin controlled the trade."
+   ],
+   "good": [
+    "The biggest reason was trade.",
+    "What was the reason?"
+   ]
+  },
+  {
+   "id": "en-pause-comma",
+   "group": "TTS 쉼표",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "pattern": "(\\b(?:how|why|what|who|where|when))\\s*,(\\s+(?:did|do|does|was|were|is|are|could|would|can|had|has|will|should)\\b)|,(\\s+(?:continues|begins|ends|concludes)\\s+in\\s+(?:part|episode)\\b)",
+   "suggest": [
+    "\\1\\2\\3"
+   ],
+   "msg": "쉼 넣으려고 문법에 없는 쉼표 (의문사와 조동사 사이, 주어와 동사 사이) - 영어 원어민 눈엔 오타. 쉼은 대본의 / 표시로",
+   "bad": [
+    "So how, did Genghis Khan get ready for war?",
+    "The Mongol invasion of the Jin, continues in part two."
+   ],
+   "good": [
+    "So how did Genghis Khan get ready for war?",
+    "The story continues in part two.",
+    "Where, exactly, did they go?"
+   ],
+   "fixes": [
+    [
+     "So how, did Genghis Khan get ready for war?",
+     "So how did Genghis Khan get ready for war?"
+    ],
+    [
+     "The Mongol invasion of the Jin, continues in part two.",
+     "The Mongol invasion of the Jin continues in part two."
+    ]
+   ]
+  },
+  {
+   "id": "en-ai-word",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "flags": "i",
+   "pattern": "\\b(?:delve|delves|delved|delving|tapestry|tapestries|intricate|multifaceted|pivotal|meticulous|meticulously|seamless|seamlessly|ever-evolving|game-changer|game-changing|bustling|nestled|unwavering|indelible|annals|enigmatic|captivating|plethora|myriad|utilize|utilizes|utilized|utilizing|commence|commenced|commences|underscore|underscores|underscored|showcase|showcases|showcased|showcasing)\\b",
+   "map": {
+    "delve": "dig",
+    "delves": "digs",
+    "delved": "dug",
+    "delving": "digging",
+    "pivotal": "key",
+    "meticulous": "careful",
+    "meticulously": "carefully",
+    "seamless": "smooth",
+    "seamlessly": "smoothly",
+    "bustling": "busy",
+    "myriad": "countless",
+    "plethora": "lot",
+    "utilize": "use",
+    "utilizes": "uses",
+    "utilized": "used",
+    "utilizing": "using",
+    "commence": "start",
+    "commenced": "began",
+    "commences": "starts",
+    "underscore": "show",
+    "underscores": "shows",
+    "underscored": "showed",
+    "showcase": "show",
+    "showcases": "shows",
+    "showcased": "showed",
+    "showcasing": "showing",
+    "intricate": "complex"
+   },
+   "msg": "AI 글에 유난히 많은 낱말 (delve·tapestry·pivotal·utilize…) - 유튜버가 말로 쓰는 쉬운 말로",
+   "bad": [
+    "Let's delve into the siege.",
+    "It was a pivotal moment.",
+    "They utilized siege engines.",
+    "A rich tapestry of cultures."
+   ],
+   "good": [
+    "Let's dig into the siege.",
+    "It was the turning point.",
+    "They used siege engines."
+   ],
+   "fixes": [
+    [
+     "They utilized siege engines.",
+     "They used siege engines."
+    ],
+    [
+     "Let's delve into the siege.",
+     "Let's dig into the siege."
+    ]
+   ]
+  },
+  {
+   "id": "en-ai-phrase",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "flags": "i",
+   "pattern": "\\b(?:a testament to|it['’]s worth noting|it is worth noting|it['’]s important to note|it is important to note|needless to say|little did (?:they|he|she|anyone) know|the rest is history|changed the course of history|(?:a )?stark reminder|stark contrast|in the annals of|sent shockwaves|a force to be reckoned with|shrouded in mystery|stood the test of time|let['’]s dive in(?:to)?|buckle up|fast forward to|at its core|in a world where|nothing short of|can(?:not|['’]t) be overstated|forever changed|the stage was set|a perfect storm|in order to|played a (?:crucial|pivotal|key|vital) role)\\b",
+   "map": {
+    "a testament to": "proof of",
+    "stark contrast": "sharp contrast",
+    "in order to": "to"
+   },
+   "msg": "AI·다큐 상투구 (a testament to, it's worth noting, little did they know, the rest is history…) - 빼거나 구체적인 사실로",
+   "bad": [
+    "His victory was a testament to his genius.",
+    "It's worth noting that the Jin had walls.",
+    "Little did they know, the Mongols were watching.",
+    "They dug in order to drain the moat."
+   ],
+   "good": [
+    "His victory proved how good he was.",
+    "The Jin had walls.",
+    "The Mongols were already watching.",
+    "They dug to drain the moat."
+   ],
+   "fixes": [
+    [
+     "They dug in order to drain the moat.",
+     "They dug to drain the moat."
+    ]
+   ]
+  },
+  {
+   "id": "en-dash",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "pattern": "(?<=[^\\d\\s])\\s*[—–]\\s*(?=[^\\d\\s])",
+   "suggest": [
+    ", "
+   ],
+   "msg": "긴 대시(em dash·en dash) - AI 글 리듬이고 TTS 쉼이 들쭉날쭉. 쉼표·마침표로 (채널 규칙: 긴 대시 안 씀)",
+   "bad": [
+    "He rode out — and never came back.",
+    "The walls held–for a while."
+   ],
+   "good": [
+    "He rode out, and never came back.",
+    "From 1206–1227."
+   ],
+   "fixes": [
+    [
+     "He rode out — and never came back.",
+     "He rode out, and never came back."
+    ]
+   ]
+  },
+  {
+   "id": "en-tag-appositive",
+   "group": "AI 티",
+   "kind": "style",
+   "level": "warn",
+   "scope": "all",
+   "position": "anywhere",
+   "pattern": ",\\s+(?:a|an)\\s+(?:[\\w-]+\\s+){0,2}(?:cycle|reminder|testament|sign|symbol|lesson|turning point|paradox|irony|feat|masterstroke|gamble|move|mistake|trade-off)(?=[.!?…][\\\"”']?(?:\\s|$))",
+   "msg": "문장 끝에 \", a dangerous cycle.\"처럼 평가 꼬리표 - AI가 자주 붙이는 해설. 빼거나 한 문장으로 (\"…and the cycle starts again.\")",
+   "bad": [
+    "And that pressure damages them again, a dangerous cycle.",
+    "He attacked at night, a bold move."
+   ],
+   "good": [
+    "And that pressure damages them again. The cycle feeds itself.",
+    "He made a bold move."
+   ]
   }
  ]
 }

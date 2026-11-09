@@ -1,0 +1,171 @@
+{
+ "_설명": "포르투갈어(브라질) 대사 규칙 (pt.md를 기계가 잡을 수 있게, você). scripts/check-text.py가 씀. 2026-11-09 처음 만듦 - 사용자가 결과를 보고 정할 때까지 전부 warn. 고치면 python3 scripts/check-text.py --selftest",
+ "lang": "pt",
+ "rules": [
+  {
+   "id": "pt-portugal-tu", "group": "포르투갈 표현", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:tu|contigo|estás|tens|sabes|podes|queres|vais|fazes|dizes|és|vês|vós|vosso|vossa|vossos|vossas|convosco)\\b", "flags": "i",
+   "map": {"tu": "você", "contigo": "com você", "estás": "está", "tens": "tem", "sabes": "sabe", "podes": "pode", "queres": "quer", "vais": "vai", "fazes": "faz", "dizes": "diz", "és": "é", "vês": "vê", "vós": "vocês", "convosco": "com vocês"},
+   "msg": "tu·vós 꼴(포르투갈식) - 시청자에게는 você (estás → está)",
+   "bad": ["Tu sabes o que aconteceu depois?", "Estás pronto?"], "good": ["Você sabe o que aconteceu depois?", "Está pronto?", "Tudo mudou em 1206."],
+   "fixes": [["Estás pronto?", "Está pronto?"]]
+  },
+  {
+   "id": "pt-estar-a", "group": "포르투갈 표현", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(est(?:ar|ou|á|amos|ão|ava|ávamos|avam|eve|iveram|aria|ariam)|fic(?:ou|aram|ava|avam)|and(?:ava|avam))\\s+a\\s+(\\w+?)(?:(a)r|(e)r|(i)r)\\b", "flags": "i",
+   "except": ["\\ba par\\b", "\\ba ver navios\\b"],
+   "suggest": ["\\1 \\2\\3\\4\\5ndo"],
+   "msg": "estar a + 동사원형은 포르투갈식 - 브라질은 estar + 현재분사 (estava a fugir → estava fugindo)",
+   "bad": ["O xá estava a fugir.", "Os mongóis estavam a cercar a cidade."], "good": ["O xá estava fugindo.", "A cidade estava a 20 km.", "Ele estava a par de tudo.", "Ficou a ver navios."],
+   "fixes": [["O xá estava a fugir.", "O xá estava fugindo."], ["Eles ficaram a esperar.", "Eles ficaram esperando."]]
+  },
+  {
+   "id": "pt-portugal-word", "group": "포르투갈 표현", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:equipas?|factos?|actual|actualmente|acção|acções|direcção|contacto|óptimo|objectivos?|exacto|exactamente|ecrã|autocarro|raparigas?|miúdos?|fixe|telemóvel|registos?|pequeno-almoço|Irão|Teerão|Moscovo|Vietname|Bagdade|Nova Iorque)\\b", "flags": "i",
+   "map": {"equipa": "equipe", "equipas": "equipes", "facto": "fato", "factos": "fatos", "actual": "atual", "actualmente": "atualmente", "acção": "ação", "acções": "ações", "direcção": "direção", "contacto": "contato", "óptimo": "ótimo", "objectivo": "objetivo", "objectivos": "objetivos", "exacto": "exato", "exactamente": "exatamente", "ecrã": "tela", "autocarro": "ônibus", "rapariga": "garota", "raparigas": "garotas", "miúdo": "garoto", "miúdos": "garotos", "fixe": "legal", "telemóvel": "celular", "registo": "registro", "registos": "registros", "pequeno-almoço": "café da manhã", "Irão": "Irã", "Teerão": "Teerã", "Moscovo": "Moscou", "Vietname": "Vietnã", "Bagdade": "Bagdá", "Nova Iorque": "Nova York"},
+   "msg": "포르투갈식 낱말·철자·지명 - 브라질 꼴로 (Irão → Irã, facto → fato, rapariga는 브라질에서 비하어)",
+   "bad": ["Do Uzbequistão até o Irão.", "O facto é que ninguém voltou."], "good": ["Do Uzbequistão até o Irã.", "O fato é que ninguém voltou.", "Um comboio de carroças."],
+   "fixes": [["Do Uzbequistão até o Irão.", "Do Uzbequistão até o Irã."]]
+  },
+  {
+   "id": "pt-portugal-o-acute", "group": "포르투갈 표현", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(\\w*)ó([mn][aeiouáéíóú]\\w*)", "flags": "i",
+   "suggest": ["\\1ô\\2"],
+   "msg": "ó + m·n은 포르투갈 철자 - 브라질은 ô (Polónia → Polônia, económico → econômico)",
+   "bad": ["Invadiram a Polónia.", "Um desastre económico.", "Um fenómeno raro."], "good": ["Invadiram a Polônia.", "Um desastre econômico.", "Só naquele ano."],
+   "fixes": [["Invadiram a Polónia.", "Invadiram a Polônia."]]
+  },
+  {
+   "id": "pt-portugal-e-acute", "group": "포르투갈 표현", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(\\w*)é([mn][aeiouáéíóú]\\w*)", "flags": "i",
+   "suggest": ["\\1ê\\2"],
+   "msg": "é + m·n은 포르투갈 철자 - 브라질은 ê (génio → gênio, fénix → fênix)",
+   "bad": ["Era um génio militar.", "Uma fénix."], "good": ["Era um gênio militar.", "Também chegaram.", "Ninguém escapou.", "Até Belém."],
+   "fixes": [["Era um génio militar.", "Era um gênio militar."]]
+  },
+  {
+   "id": "pt-enclisis", "group": "글말·격식", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?<=\\w )(\\w+(?:ou|ram|ava|avam|ia|iam|eu|iu|sse|ez|ve))-(se|me|te|lhe|lhes|o|a|os|as)\\b", "flags": "i",
+   "suggest": ["\\2 \\1"],
+   "msg": "문장 가운데 동사 뒤 대명사(rendeu-se)는 포르투갈식·글말 - 브라질 말로는 앞에 (se rendeu)",
+   "bad": ["O imperador rendeu-se em 1209.", "O xá disse-lhe a verdade."], "good": ["O imperador se rendeu em 1209.", "Rendeu-se em 1209.", "Pra enfraquecê-lo, cortaram o comércio."],
+   "fixes": [["O imperador rendeu-se em 1209.", "O imperador se rendeu em 1209."]]
+  },
+  {
+   "id": "pt-mesoclise", "group": "글말·격식", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b\\w+-(?:me|te|se|lhe|lhes|nos|vos|o|a|os|as|lo|la|los|las)-(?:ei|ás|á|emos|eis|ão|ia|ias|íamos|íeis|iam)\\b", "flags": "i",
+   "msg": "메소클리시스(far-se-ia)는 말로 안 씀 - 대명사를 앞으로 (se faria)·ia + 동사원형",
+   "bad": ["Isso tornar-se-ia um império.", "Dir-lhe-ei a verdade."], "good": ["Isso ia virar um império.", "Vou te contar a verdade."]
+  },
+  {
+   "id": "pt-written-connector", "group": "글말·격식", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:contudo|todavia|ademais|outrossim|destarte|conquanto|porquanto|mormente|deveras|não obstante|haja vista|a fim de|acerca de|doravante|outrora)\\b", "flags": "i",
+   "map": {"contudo": "porém", "todavia": "porém", "ademais": "além disso", "não obstante": "mesmo assim", "a fim de": "pra", "acerca de": "sobre", "outrora": "antes"},
+   "msg": "글말 접속사·전치사 - 유튜버 말로는 mas·só que·além disso·pra·sobre",
+   "bad": ["Contudo, a cidade resistiu.", "Mandaram tropas a fim de cercar Otrar."], "good": ["Só que a cidade resistiu.", "Mandaram tropas pra cercar Otrar."],
+   "fixes": [["Contudo, a cidade resistiu.", "Porém, a cidade resistiu."]]
+  },
+  {
+   "id": "pt-written-relative", "group": "글말·격식", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bcuj[oa]s?\\b|,\\s*(?:o|a|os|as|no|na|nos|nas|do|da|dos|das|pelo|pela|pelos|pelas|ao|à|aos|às)\\s+(?:qual|quais)\\b", "flags": "i",
+   "msg": "cujo·o qual은 글말 관계사 - 말로는 문장을 끊거나 que로 (\"um príncipe cujo pai morreu\" → \"um príncipe que tinha perdido o pai\")",
+   "bad": ["Era um príncipe cujo pai fora morto.", "Chegaram a Otrar, na qual o governador esperava."], "good": ["Era um príncipe que tinha perdido o pai.", "Qual era o plano?", "Em qual cidade?"]
+  },
+  {
+   "id": "pt-numbered-list", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?:^|(?<=[.!?…/]\\s))(?:Um|Uma|Dois|Duas|Três|Quatro)(?=\\s*:)",
+   "map": {"Um": "Primeiro", "Uma": "Primeira", "Dois": "Segundo", "Duas": "Segunda", "Três": "Terceiro", "Quatro": "Quarto"},
+   "msg": "영어 \"One: ... Two: ...\" 그대로 - 포르투갈어는 Primeiro: · Segundo: (또는 O primeiro motivo...)",
+   "bad": ["Um: os Jin apoiaram os tártaros.", "E deu dois motivos. Dois: a vingança."], "good": ["Primeiro: os Jin apoiaram os tártaros.", "Um só povo dominou a estepe.", "Às duas: o ataque."],
+   "fixes": [["Um: os Jin apoiaram os tártaros.", "Primeiro: os Jin apoiaram os tártaros."]]
+  },
+  {
+   "id": "pt-anglicismo", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:tomou lugar|tomaram lugar|toma lugar|tomar lugar|jogou um papel|jogar um papel|joga um papel|realizou que|realizaram que|realizar que|assumiu que|assumiram que|mais e mais|de novo e de novo|isso dito|é suposto|era suposto|eventualmente|massiv[oa]s?)\\b", "flags": "i",
+   "map": {"tomou lugar": "aconteceu", "tomaram lugar": "aconteceram", "toma lugar": "acontece", "tomar lugar": "acontecer", "jogou um papel": "teve um papel", "jogar um papel": "ter um papel", "joga um papel": "tem um papel", "realizou que": "percebeu que", "realizaram que": "perceberam que", "realizar que": "perceber que", "assumiu que": "achou que", "assumiram que": "acharam que", "mais e mais": "cada vez mais", "de novo e de novo": "várias vezes", "isso dito": "dito isso", "é suposto": "deveria", "era suposto": "deveria", "eventualmente": "no fim", "massivo": "enorme", "massiva": "enorme", "massivos": "enormes", "massivas": "enormes"},
+   "msg": "영어 직역 (take place·realize·assume·more and more·eventually·massive) - 포르투갈어 관용 표현으로",
+   "bad": ["A batalha tomou lugar em 1220.", "O xá realizou que estava cercado.", "Mais e mais cidades se renderam.", "Um exército massivo."], "good": ["A batalha aconteceu em 1220.", "O xá percebeu que estava cercado.", "Cada vez mais cidades se renderam.", "Um exército enorme.", "Ele realizou o sonho do pai."],
+   "fixes": [["O xá realizou que estava cercado.", "O xá percebeu que estava cercado."], ["Mais e mais cidades se renderam.", "Cada vez mais cidades se renderam."]]
+  },
+  {
+   "id": "pt-onde-que", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(é|foi|era)\\s+(aqui|aí|ali|lá)\\s+onde\\b|\\baqui é onde\\b|\\baqui está (?:a coisa|o problema|o detalhe|o truque|o porquê)\\b", "flags": "i",
+   "suggest": ["\\1 \\2 que"],
+   "msg": "영어 \"this is where\"·\"here's the thing\" 직역 - 포르투갈어는 \"é aí que\"·\"o problema é o seguinte\"",
+   "bad": ["Foi aí onde tudo mudou.", "Mas aqui está o problema."], "good": ["Foi aí que tudo mudou.", "Mas o problema é o seguinte.", "Lá, onde o rio fazia a curva."],
+   "fixes": [["Foi aí onde tudo mudou.", "Foi aí que tudo mudou."]]
+  },
+  {
+   "id": "pt-ai-phrase", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bvale (?:a pena )?(?:ressaltar|destacar|notar|lembrar|mencionar|observar|salientar|frisar)\\b|\\bé (?:importante|interessante|fundamental|crucial|curioso) (?:notar|destacar|ressaltar|lembrar|mencionar|observar|salientar|frisar)\\b|\\bverdadeir[oa] (?:testemunho|prova|marco|símbolo)\\b|\\btestemunho d[eoa]s?\\b|\\b(?:tapete|tapeçaria|teia|tecido) d[ao]s? história\\b|\\b(?:anais|páginas) da história\\b|\\bmarca (?:indelével|profunda|duradoura)\\b|\\b(?:moldou|moldaram|moldaria|moldar) (?:o curso|os rumos|o destino)\\b|\\b(?:vamos )?mergulh(?:ar|e|emos|ando) (?:fundo|nessa|nesta|na história)\\b|\\b(?:embarque|embarcar|embarcamos) (?:nessa|nesta|numa) jornada\\b|\\buma jornada (?:fascinante|incrível|épica)\\b|\\bem (?:suma|última análise)\\b|\\bnão (?:é|seria) exagero dizer\\b|\\bmais do que (?:um|uma) simples\\b|\\b(?:ecoa|ecoam|ressoa|ressoam) até hoje\\b|\\bas coisas (?:ficam|ficaram|começam a ficar|começaram a ficar) interessantes\\b|\\bo resto é história\\b", "flags": "i",
+   "msg": "AI 문장 상투어 (vale ressaltar·um verdadeiro testemunho·no tapete da história·mergulhar) - 빼거나 사실 한 줄로",
+   "bad": ["Vale ressaltar que os mongóis eram poucos.", "Bukhara é um verdadeiro testemunho da força mongol.", "Vamos mergulhar nessa história.", "E é aqui que as coisas ficam interessantes."], "good": ["Os mongóis eram poucos.", "Vale a pena ver o mapa.", "Eles mergulharam no rio."]
+  },
+  {
+   "id": "pt-not-only", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bnão (?:apenas|só|somente)\\b[^.!?/]{1,80}?\\bmas também\\b", "flags": "i",
+   "msg": "\"não apenas ~, mas também ~\" 짝 맞춤은 AI 티 - 두 문장으로 끊거나 \"e ainda\"",
+   "bad": ["Não apenas tomaram Bukhara, mas também Samarcanda."], "good": ["Tomaram Bukhara. E, logo depois, Samarcanda.", "Não só isso."]
+  },
+  {
+   "id": "pt-hedge-stack", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:quase|cerca de|aproximadamente|por volta de|praticamente|mais ou menos|em torno de|talvez|provavelmente|possivelmente|meio que|de certa forma|de certo modo|basicamente|relativamente)\\b[^/]*?\\b(?:quase|cerca de|aproximadamente|por volta de|praticamente|mais ou menos|em torno de|talvez|provavelmente|possivelmente|meio que|de certa forma|de certo modo|basicamente|relativamente|u(?:ns|mas) \\d)", "flags": "i",
+   "msg": "어림말(quase·cerca de·talvez·mais ou menos...)이 한 호흡에 두 번 - 숫자는 한 번만 단정해서 (영어 about·barely를 매번 옮긴 것)",
+   "bad": ["Eram cerca de 20.000, talvez um pouco mais.", "Quase metade, praticamente todos os homens."], "good": ["Eram uns 20.000.", "Quase tudo vinha do comércio.", "O Xia ainda tinha uns 150.000 soldados e muitos fortes."]
+  },
+  {
+   "id": "pt-aproximadamente", "group": "글말·격식", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\baproximadamente\\b", "flags": "i",
+   "msg": "\"aproximadamente\"는 글말·영어 approximately - 말로는 uns·umas·por volta de·quase",
+   "bad": ["Eram aproximadamente 20.000 cavaleiros."], "good": ["Eram uns 20.000 cavaleiros."]
+  },
+  {
+   "id": "pt-passive", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere", "overuse": 2,
+   "pattern": "\\b(?:foi|foram)\\s+(?:\\w+mente\\s+|logo\\s+)?(?!(?:soldad|aliad|lad|estad|reinad|cunhad)o)\\w+(?:ad|id)[oa]s?\\b", "flags": "i",
+   "msg": "수동태(foi + 과거분사)가 편에 많음 - 능동태나 \"levaram/derrubaram\"(주어 없는 3인칭 복수)으로",
+   "bad": ["O imperador foi derrubado pelo primo."], "good": ["O próprio primo derrubou o imperador.", "Levaram toda a comida pra capital.", "Foram soldados mongóis que abriram o portão."]
+  },
+  {
+   "id": "pt-mas-start", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere", "overuse": 7,
+   "pattern": "(?:^|(?<=[.!?…/]\\s))Mas\\b",
+   "msg": "문장 첫 \"Mas\"가 편에 많음 - 영어 But을 줄마다 옮긴 것. Só que·Acontece que·Aí로 바꾸거나 빼기",
+   "bad": ["Mas os mongóis não vieram do rio.", "Otrar resistiu. Mas caiu."], "good": ["Só que os mongóis não vieram do rio.", "Resistiu, mas caiu."]
+  },
+  {
+   "id": "pt-medical-calque", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:ataques? cardíacos?|pressão sanguínea)\\b", "flags": "i",
+   "map": {"ataque cardíaco": "infarto", "ataques cardíacos": "infartos", "pressão sanguínea": "pressão arterial"},
+   "msg": "의학 용어 영어 직역 (heart attack·blood pressure) - 브라질은 infarto·pressão arterial",
+   "bad": ["Um ataque cardíaco começa assim.", "A pressão sanguínea sobe."], "good": ["Um infarto começa assim.", "A pressão arterial sobe."],
+   "fixes": [["Um ataque cardíaco começa assim.", "Um infarto começa assim."]]
+  },
+  {
+   "id": "pt-imperial", "group": "숫자", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\d[\\d.,]*\\s*(?:milhas?|pés|polegadas?|libras?|jardas?|galões|galão|onças?|graus fahrenheit)\\b", "flags": "i",
+   "msg": "영미 단위 - 브라질은 미터법 (km·m·cm·kg·litro·°C)",
+   "bad": ["Ficava a 300 milhas de Bukhara.", "Pesava 20 libras."], "good": ["Ficava a 500 km de Bukhara.", "Pesava 9 kg.", "Ficou de pé."]
+  },
+  {
+   "id": "pt-thousands", "group": "숫자", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?<![\\d.,])\\d{1,3}(?:,\\d{3})+(?![\\d,])|(?<![\\d.,])\\d{5,}(?![\\d.,])",
+   "fix": "es_thousands",
+   "msg": "천 단위는 마침표 (20.000 cavaleiros)",
+   "bad": ["Eram 20,000 cavaleiros.", "Uns 150000 soldados."], "good": ["Eram 20.000 cavaleiros.", "Em 1219."],
+   "fixes": [["Eram 20,000 cavaleiros.", "Eram 20.000 cavaleiros."]]
+  },
+  {
+   "id": "pt-seculo", "group": "숫자", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bséculo\\s+(\\d{1,2})\\b", "flags": "i",
+   "fix": "roman",
+   "msg": "세기는 로마 숫자 (século XIII)",
+   "bad": ["No século 13."], "good": ["No século XIII."],
+   "fixes": [["No século 13.", "No século XIII."]]
+  },
+  {
+   "id": "pt-english-left", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:the|and|with|this|that|was|were|they|their|which|from)\\b", "flags": "i",
+   "msg": "번역 안 하고 남은 영어 낱말",
+   "bad": ["Os Jin and os Song."], "good": ["Os Jin e os Song."]
+  }
+ ]
+}

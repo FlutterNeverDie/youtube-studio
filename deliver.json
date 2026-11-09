@@ -2,78 +2,6 @@
  "_설명": "완성본을 hwm/ 산출물 폴더로 복사 (node scripts/deliver.mjs). 파일 이름 = 이름_날짜(파일 만든 날). thumb가 있으면 '이름_날짜_썸네일.png'로 같이 둔다",
  "items": [
   {
-   "src": "out/mongol-02.es.wav",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편_스페인어 더빙",
-   "nodate": true
-  },
-  {
-   "src": "out/mongol-02.ko.wav",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편_한국어 더빙",
-   "nodate": true
-  },
-  {
-   "src": "out/mongol-02.mp4",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편",
-   "nodate": false
-  },
-  {
-   "src": "out/thumbs/mongol-02-A.png",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편_썸네일 1 그들이 식탁이었다",
-   "nodate": true
-  },
-  {
-   "src": "out/thumbs/mongol-02-B.png",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편_썸네일 2 누가 이겼나",
-   "nodate": true
-  },
-  {
-   "src": "out/thumbs/mongol-02-C.png",
-   "dir": "영상/몽골 제국/2편 - 유럽과의 첫 충돌, 칼카강",
-   "name": "몽골 제국 2편_썸네일 3 유럽의 첫 악몽",
-   "nodate": true
-  },
-  {
-   "src": "out/mongol-01.es.wav",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편_스페인어 더빙",
-   "nodate": true
-  },
-  {
-   "src": "out/mongol-01.ko.wav",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편_한국어 더빙",
-   "nodate": true
-  },
-  {
-   "src": "out/mongol-01.mp4",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편",
-   "nodate": false
-  },
-  {
-   "src": "out/thumbs/mongol-01-A.png",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편_썸네일 1 고아에서 정복자로",
-   "nodate": true
-  },
-  {
-   "src": "out/thumbs/mongol-01-B.png",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편_썸네일 2 어떻게 이겼나",
-   "nodate": true
-  },
-  {
-   "src": "out/thumbs/mongol-01-C.png",
-   "dir": "영상/몽골 제국/1편 - 쫓기던 고아가 세계를 삼키기까지",
-   "name": "몽골 제국 1편_썸네일 3 칭기즈칸",
-   "nodate": true
-  },
-  {
    "src": "out/historymapworld-europe-borders-1x1.mp4",
    "dir": "쇼츠",
    "name": "유럽 국경 1700-2020"
@@ -395,6 +323,102 @@
    "src": "out/brand/w-helmet.png",
    "dir": "배너",
    "name": "워터마크 (300 원본)",
+   "nodate": true
+  },
+  {
+   "src": "out/char-sheet/1·2편 인물 전원.png",
+   "dir": "시안/새 그림체 시안 (2026-10-26)",
+   "name": "1·2편 인물 전원",
+   "nodate": true
+  },
+  {
+   "src": "out/char-sheet/표정·입 모양 예시.png",
+   "dir": "시안/새 그림체 시안 (2026-10-26)",
+   "name": "표정·입 모양 예시",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01.mp4",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "영상",
+   "nodate": false
+  },
+  {
+   "src": "out/mongol-01.ko.wav",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "더빙_한국어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01.es.wav",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "더빙_스페인어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01.pt.wav",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "더빙_포르투갈어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01.hi.wav",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "더빙_힌디어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01.id.wav",
+   "dir": "영상/몽골 제국/1편 - 세계를 삼킨 남자의 시작",
+   "name": "더빙_인도네시아어",
+   "nodate": true
+  },
+  {
+   "src": "out/m1r-subs/자막_영어.srt",
+   "dir": "영상/몽골 제국/1편 수정판 - 첫 성벽",
+   "name": "자막_영어",
+   "nodate": true
+  },
+  {
+   "src": "out/m1r-subs/자막_한국어.srt",
+   "dir": "영상/몽골 제국/1편 수정판 - 첫 성벽",
+   "name": "자막_한국어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01r.mp4",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "영상",
+   "nodate": false
+  },
+  {
+   "src": "out/mongol-01r.ko.wav",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "더빙_한국어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01r.es.wav",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "더빙_스페인어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01r.pt.wav",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "더빙_포르투갈어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01r.hi.wav",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "더빙_힌디어",
+   "nodate": true
+  },
+  {
+   "src": "out/mongol-01r.id.wav",
+   "dir": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+   "name": "더빙_인도네시아어",
    "nodate": true
   }
  ]

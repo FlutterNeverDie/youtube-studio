@@ -1,0 +1,220 @@
+{
+ "name": "영상",
+ "folder": "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽",
+ "structure": {
+  "hook": "none",
+  "chapters": "0123456",
+  "no_card": "012",
+  "ending_frames": {
+   "6": 600
+  }
+ },
+ "video": "",
+ "thumbs": [
+  "영상/몽골 제국/금나라 침공기/1부 - 첫 성벽/썸네일_영어.png"
+ ],
+ "chapters": [],
+ "sources": [
+  "- The Secret History of the Mongols (13th c.)",
+  "- Yuan Shi (History of Yuan, 14th c.)",
+  "- Jin Shi (History of Jin, 14th c.)",
+  "- Rashid al-Din, Jami' al-tawarikh (14th c.)"
+ ],
+ "langs": {
+  "en": {
+   "title": "The Mongol Invasion of the Jin Dynasty, Part 1",
+   "hook": "In 1206, Genghis Khan had united the steppe. But to the south stood the Jin, a vast empire of high walls and huge armies, and the Mongols had never properly attacked a single walled city. This is how he got ready: a practice war against Western Xia, the siege lessons it taught him, the insult that made war unavoidable, and the march toward Yehuling.",
+   "chapters": [
+    "A khan and an empire",
+    "The Jin problem",
+    "Practice target: Western Xia",
+    "How to break Xia's cities",
+    "Why the Jin feared the nomads",
+    "The spit",
+    "To Yehuling"
+   ],
+   "more": "",
+   "ai_note": "Narration is AI-generated.",
+   "sources_title": "Sources:",
+   "hashtags": [
+    "#history",
+    "#mongolempire",
+    "#genghiskhan"
+   ],
+   "tags": [
+    "mongol empire",
+    "genghis khan",
+    "jin dynasty",
+    "mongol conquest of the jin",
+    "western xia",
+    "battle of yehuling",
+    "siege warfare",
+    "mongol siege tactics",
+    "history documentary",
+    "world history",
+    "animated history"
+   ]
+  },
+  "ko": {
+   "title": "몽골의 금나라 침공기 1부",
+   "hook": "1206년, 칭기즈칸은 초원을 하나로 묶었습니다. 하지만 남쪽에는 높은 성벽과 대군을 가진 금나라가 있었고, 몽골군은 성 하나 제대로 공격해 본 적이 없었습니다. 칭기즈칸이 전쟁을 준비한 과정을 따라갑니다. 예행연습 상대 서하와의 전쟁, 거기서 배운 공성법, 전쟁을 피할 수 없게 만든 모욕, 그리고 야호령으로 향한 진군까지.",
+   "chapters": [
+    "칸과 제국",
+    "금나라라는 문제",
+    "예행연습 상대, 서하",
+    "서하의 성을 무너뜨리는 법",
+    "금나라는 왜 유목민을 경계했나",
+    "침을 뱉다",
+    "야호령으로"
+   ],
+   "more": "",
+   "ai_note": "내레이션은 AI로 만들었습니다.",
+   "sources_title": "출처:",
+   "hashtags": [
+    "#세계사",
+    "#몽골제국",
+    "#칭기즈칸"
+   ]
+  },
+  "es": {
+   "title": "La invasión mongola de la dinastía Jin, parte 1",
+   "hook": "En 1206, Gengis Kan ya había unido la estepa. Pero al sur estaban los Jin, un imperio inmenso de altas murallas y enormes ejércitos, y los mongoles nunca habían atacado en serio ni una sola ciudad amurallada. Así se preparó: una guerra de práctica contra Xia Occidental, las lecciones de asedio que le dejó, el insulto que hizo inevitable la guerra y la marcha hacia Yehuling.",
+   "chapters": [
+    "Un kan y un imperio",
+    "El problema de los Jin",
+    "Blanco de práctica: Xia Occidental",
+    "Cómo romper las ciudades de Xia",
+    "Por qué los Jin temían a los nómadas",
+    "El escupitajo",
+    "Hacia Yehuling"
+   ],
+   "ai_note": "La narración se generó con IA.",
+   "sources_title": "Fuentes:",
+   "hashtags": [
+    "#historia",
+    "#imperiomongol",
+    "#gengiskan"
+   ],
+   "tags": [
+    "imperio mongol",
+    "gengis kan",
+    "dinastía Jin",
+    "mongoles",
+    "Xia Occidental",
+    "historia de China",
+    "historia medieval",
+    "historia militar",
+    "asedios",
+    "conquistas mongolas"
+   ],
+   "more": ""
+  },
+  "pt": {
+   "title": "A invasão mongol da dinastia Jin, parte 1",
+   "hook": "Em 1206, Gengis Khan já tinha unido a estepe. Mas ao sul estavam os Jin, um império enorme, de muralhas altas e exércitos gigantes, e os mongóis nunca tinham atacado de verdade uma única cidade murada. Foi assim que ele se preparou: uma guerra de treino contra o Xia Ocidental, as lições de cerco que ela trouxe, o insulto que tornou o conflito inevitável e a marcha até Yehuling.",
+   "chapters": [
+    "Um khan e um império",
+    "O problema Jin",
+    "Alvo de treino: o Xia Ocidental",
+    "Como quebrar as cidades do Xia",
+    "Por que os Jin temiam os nômades",
+    "A cuspida",
+    "Rumo a Yehuling"
+   ],
+   "ai_note": "A narração foi gerada por IA.",
+   "sources_title": "Fontes:",
+   "hashtags": [
+    "#história",
+    "#impériomongol",
+    "#gengiskhan"
+   ],
+   "tags": [
+    "história",
+    "império mongol",
+    "gengis khan",
+    "dinastia Jin",
+    "invasão mongol",
+    "mongóis",
+    "Xia Ocidental",
+    "história da China",
+    "guerra medieval",
+    "cerco medieval",
+    "documentário de história"
+   ],
+   "more": ""
+  },
+  "hi": {
+   "title": "जिन राजवंश पर मंगोल आक्रमण, भाग 1",
+   "hook": "1206 में चंगेज़ ख़ान ने पूरी स्टेपी को एक कर लिया था। पर दक्षिण में खड़ा था जिन, ऊँची दीवारों और भारी फ़ौजों वाला विशाल साम्राज्य, और मंगोलों ने अब तक एक भी दीवार वाले शहर पर ढंग से हमला नहीं किया था। तो चंगेज़ ने तैयारी ऐसे की: पश्चिमी शिया के ख़िलाफ़ एक रिहर्सल जंग, उससे मिले घेराबंदी के सबक़, वो अपमान जिसने जंग को टालना नामुमकिन कर दिया, और येहुलिंग की ओर कूच।",
+   "chapters": [
+    "एक ख़ान और एक साम्राज्य",
+    "जिन की समस्या",
+    "रिहर्सल का निशाना: पश्चिमी शिया",
+    "शिया के शहर कैसे तोड़े",
+    "जिन ख़ानाबदोशों से क्यों डरता था",
+    "वो थूक",
+    "येहुलिंग की ओर"
+   ],
+   "ai_note": "नैरेशन AI से बनाया गया है।",
+   "sources_title": "स्रोत:",
+   "hashtags": [
+    "#इतिहास",
+    "#मंगोलसाम्राज्य",
+    "#चंगेज़ख़ान"
+   ],
+   "tags": [
+    "मंगोल साम्राज्य",
+    "चंगेज़ ख़ान",
+    "जिन राजवंश",
+    "मंगोल आक्रमण",
+    "पश्चिमी शिया",
+    "मंगोलों का इतिहास",
+    "चीन का इतिहास",
+    "मध्यकालीन इतिहास",
+    "घेराबंदी",
+    "इतिहास हिंदी में"
+   ],
+   "more": ""
+  },
+  "id": {
+   "title": "Invasi Mongol ke Dinasti Jin, Bagian 1",
+   "hook": "Tahun 1206, Jenghis Khan sudah menyatukan padang rumput. Tapi di selatan berdiri Jin, kekaisaran raksasa dengan tembok tinggi dan pasukan besar, sementara Mongol belum pernah benar-benar menyerang satu kota bertembok pun. Beginilah cara dia bersiap: perang latihan melawan Xia Barat, pelajaran pengepungan yang didapat dari sana, hinaan yang membuat perang tak terhindarkan, dan perjalanan menuju Yehuling.",
+   "chapters": [
+    "Seorang khan, sebuah kekaisaran",
+    "Masalah bernama Jin",
+    "Sasaran latihan: Xia Barat",
+    "Cara menjebol kota Xia",
+    "Kenapa Jin takut bangsa nomaden",
+    "Ludah Jenghis",
+    "Menuju Yehuling"
+   ],
+   "ai_note": "Narasi dibuat dengan AI.",
+   "sources_title": "Sumber:",
+   "hashtags": [
+    "#sejarah",
+    "#kekaisaranmongol",
+    "#jenghiskhan"
+   ],
+   "tags": [
+    "invasi mongol",
+    "dinasti jin",
+    "jenghis khan",
+    "kekaisaran mongol",
+    "sejarah mongol",
+    "xia barat",
+    "yehuling",
+    "taktik pengepungan",
+    "sejarah tiongkok",
+    "sejarah dunia",
+    "dokumenter sejarah"
+   ],
+   "more": ""
+  }
+ },
+ "uploaded": "2026-11-07",
+ "youtubeId": "MoH-5Nn6ZEI",
+ "youtubeIdOld": [
+  "WPISuB93qIY"
+ ],
+ "youtubeIdOld_note": "WPISuB93qIY = 11-06 Schedar -3판, 공개 그대로 둠 (2026-11-08 사용자). 새 판은 youtubeId"
+}

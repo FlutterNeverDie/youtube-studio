@@ -22,7 +22,8 @@ import { readFile, rm, stat, writeFile } from "node:fs/promises";
 import { openPath } from "./tools.mjs";
 
 const SECRETS = new URL("../secrets/", import.meta.url);
-const SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.readonly"];
+// 2026-11-03 사용자 "권한 넓혀줘": 올린 뒤 제목·설명 고치기(videos.update)·재생목록 만들기에 youtube.force-ssl 추가 → auth 다시 받아야 함
+const SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/youtube.force-ssl"];
 
 const readJson = async (name) => JSON.parse(await readFile(new URL(name, SECRETS), "utf8"));
 
@@ -91,11 +92,11 @@ async function whoami() {
 // 올릴 정보 읽기 - 두 형식을 받는다
 //   단순(쇼츠): { title, description, tags, privacy?, publishAt? }
 //   편(upload-info.py가 만드는 uploads/<편>.json): { video, thumbs[], categoryId, defaultLanguage, localizations: { en: {title, description, tags}, ko: {...}, es: {...} } }
-//     → 기본 언어가 snippet, 나머지 언어는 localizations(언어별 제목·설명), thumbs[0]은 썸네일 (경로는 ~/hwm 기준)
+//     → 기본 언어가 snippet, 나머지 언어는 localizations(언어별 제목·설명), thumbs[0]은 썸네일 (경로는 ~/ReStory 기준)
 function request(meta) {
   const lang = meta.defaultLanguage ?? "en";
   const main = meta.localizations?.[lang] ?? meta;
-  const status = { privacyStatus: meta.publishAt ? "private" : (meta.privacy ?? "private"), selfDeclaredMadeForKids: false, containsSyntheticMedia: true }; // AI 목소리 → 합성 콘텐츠 표시
+  const status = { privacyStatus: meta.publishAt ? "private" : (meta.privacy ?? "private"), selfDeclaredMadeForKids: false, containsSyntheticMedia: meta.synthetic ?? false }; // 2026-10-28 사용자가 AI 표시를 끔: 누가 봐도 애니메이션이고 실존 인물 목소리를 흉내 내지 않아 표시 의무 대상 아님 (설명란에 AI 목소리라고 적음). 실제처럼 보이는 합성이면 meta.synthetic = true
   if (meta.publishAt) status.publishAt = meta.publishAt;
   const body = {
     snippet: { title: main.title, description: main.description ?? "", tags: main.tags ?? [], categoryId: meta.categoryId ?? "27", defaultLanguage: lang, defaultAudioLanguage: lang },
@@ -118,7 +119,7 @@ async function upload(file, metaPath, ...flags) {
     const [ok, s0] = await Promise.all([stat(src + ".checked").catch(() => null), stat(src).catch(() => null)]);
     if (!ok || !s0 || ok.mtimeMs < s0.mtimeMs) throw new Error(`깜빡임 검사를 통과하지 않은 영상이라 올리지 않음: ${src}`);
   }
-  const thumb = meta.thumbs?.[0] ? join(process.env.HWM ?? join(homedir(), "hwm"), meta.thumbs[0]) : null;
+  const thumb = meta.thumbs?.[0] ? join(process.env.HWM ?? join(homedir(), "ReStory"), meta.thumbs[0]) : null;
   if (flags.includes("--dry-run")) {
     console.log(`보낼 내용 (part=${parts}):\n${JSON.stringify(body0, null, 1)}\n영상: ${file}\n썸네일: ${thumb ?? "없음"}`);
     return;
@@ -180,10 +181,126 @@ async function queue(path = "uploads/schedule.json") {
   }
 }
 
+// 영상 상태 보기 (읽기만): 공개 여부·처리 상태·연령 제한·아동용·지역 차단·조회수 - 2026-10-28 "검색에 안 뜬다"
+async function status(...ids) {
+  const token = await accessToken();
+  const r = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status,snippet,contentDetails,statistics&id=${ids.join(",")}`, { headers: { authorization: `Bearer ${token}` } });
+  const body = await r.json();
+  if (!r.ok) throw new Error(JSON.stringify(body.error));
+  for (const v of body.items ?? []) {
+    const s = v.status, c = v.contentDetails;
+    console.log(`${v.id} · ${v.snippet.title}\n  공개: ${s.privacyStatus}${s.publishAt ? ` (예약 ${s.publishAt})` : ""} · 처리: ${s.uploadStatus}${s.rejectionReason ? ` 거절 ${s.rejectionReason}` : ""}${s.failureReason ? ` 실패 ${s.failureReason}` : ""}` +
+      `\n  아동용: ${s.madeForKids} · 연령 제한: ${c.contentRating?.ytRating ?? "없음"} · 지역 차단: ${JSON.stringify(c.regionRestriction ?? "없음")} · 퍼가기: ${s.embeddable}` +
+      `\n  올린 때: ${v.snippet.publishedAt} · 조회 ${v.statistics.viewCount} · 좋아요 ${v.statistics.likeCount ?? "-"} · 기본 언어 ${v.snippet.defaultLanguage ?? "-"}/${v.snippet.defaultAudioLanguage ?? "-"}`);
+  }
+  if (!body.items?.length) console.log("영상을 찾지 못함 (지워졌거나 이 채널 영상이 아님)");
+}
+
+// 이미 올린 영상의 썸네일만 바꾸기 (2026-11-03 2편: 업로드 뒤에 썸네일을 골라서) - 경로는 그대로 또는 ~/ReStory 기준
+async function thumb(id, file) {
+  const path = (await stat(file).catch(() => null)) ? file : join(process.env.HWM ?? join(homedir(), "ReStory"), file);
+  const token = await accessToken();
+  const t = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${id}`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": path.endsWith(".png") ? "image/png" : "image/jpeg" },
+    body: await readFile(path),
+  });
+  console.log(t.ok ? `썸네일 바꿈: ${id}` : `썸네일 실패: ${t.status} ${(await t.text()).slice(0, 300)}`);
+}
+
+// 이미 올린 영상의 제목·설명·태그·언어별 번역 고치기 (공개 상태는 안 건드림): node scripts/youtube.mjs update <영상ID> uploads/<편>.json [--dry-run]
+async function update(id, metaPath, ...flags) {
+  const { snippet, localizations } = request(JSON.parse(await readFile(metaPath, "utf8")));
+  const body = { id, snippet, ...(localizations ? { localizations } : {}) };
+  if (flags.includes("--dry-run")) return console.log(JSON.stringify(body, null, 1));
+  const token = await accessToken();
+  const r = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet${localizations ? ",localizations" : ""}`, {
+    method: "PUT", headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" }, body: JSON.stringify(body),
+  });
+  const out = await r.json();
+  if (!r.ok) throw new Error(`고치기 실패: ${r.status} ${JSON.stringify(out.error)}`);
+  console.log(`고침: ${id} · ${out.snippet.title}`);
+}
+
+// 재생목록 만들기·채우기: node scripts/youtube.mjs playlist uploads/playlist-<이름>.json
+//   { id?, title, description, defaultLanguage, localizations: { ko: {title, description} }, privacy, videos: [영상ID...] }
+//   id가 없으면 만들고 적어 둠, 목록에 아직 없는 영상만 순서대로 더함 (다시 돌려도 두 번 안 넣음)
+async function playlist(path) {
+  const pl = JSON.parse(await readFile(path, "utf8"));
+  const token = await accessToken();
+  const api = async (url, method = "GET", body) => {
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/${url}`, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" }, body: body && JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(`재생목록 실패 (${url}): ${r.status} ${JSON.stringify(j.error)}`);
+    return j;
+  };
+  // 엉뚱한 채널에 만들지 않게: 허용받은 채널이 넣을 영상의 채널과 같아야 함 (2026-11-03 개인 채널 "유튭"으로 허용돼 재생목록이 거기 생김)
+  const mine = (await api("channels?part=snippet&mine=true")).items?.[0];
+  const owner = pl.videos?.length ? (await api(`videos?part=snippet&id=${pl.videos[0]}`)).items?.[0]?.snippet : null;
+  if (owner && mine?.id !== owner.channelId) throw new Error(`허용받은 채널(${mine?.snippet.title})이 영상 채널(${owner.channelTitle})과 다름 - auth를 다시 받으며 "${owner.channelTitle}"을 고를 것`);
+  const meta = { snippet: { title: pl.title, description: pl.description, defaultLanguage: pl.defaultLanguage ?? "en" }, status: { privacyStatus: pl.privacy ?? "private" }, ...(pl.localizations ? { localizations: pl.localizations } : {}) };
+  const parts = `snippet,status${pl.localizations ? ",localizations" : ""}`;
+  const fresh = !pl.id;
+  if (fresh) {
+    pl.id = (await api(`playlists?part=${parts}`, "POST", meta)).id;
+    await writeFile(path, JSON.stringify(pl, null, 1) + "\n");
+    console.log(`재생목록 만듦: https://www.youtube.com/playlist?list=${pl.id}`);
+  } else {
+    await api(`playlists?part=${parts}`, "PUT", { id: pl.id, ...meta });
+    console.log(`재생목록 고침: ${pl.id}`);
+  }
+  // 막 만든 목록은 몇 초 동안 조회가 404 (2026-11-03) → 비었다고 보고 바로 넣음
+  const have = fresh ? new Set() : new Set((await api(`playlistItems?part=contentDetails&maxResults=50&playlistId=${pl.id}`)).items.map((i) => i.contentDetails.videoId));
+  for (const v of pl.videos ?? []) {
+    if (have.has(v)) continue;
+    await api("playlistItems?part=snippet", "POST", { snippet: { playlistId: pl.id, resourceId: { kind: "youtube#video", videoId: v } } });
+    console.log(`  + ${v}`);
+  }
+}
+
+// 자막 올리기 (2026-11-03): node scripts/youtube.mjs caption <영상ID> <언어> <파일.srt>
+//   같은 언어 자막이 이미 있으면 내용만 바꿈(update), 없으면 새로(insert). 이름은 비워 둠 = 유튜브가 언어 이름으로 보여 줌
+async function caption(id, lang, file) {
+  const token = await accessToken();
+  const list = await (await fetch(`https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${id}`, { headers: { authorization: `Bearer ${token}` } })).json();
+  const old = (list.items ?? []).find((c) => c.snippet.language === lang && c.snippet.trackKind !== "asr");
+  const meta = old ? { id: old.id } : { snippet: { videoId: id, language: lang, name: "", isDraft: false } };
+  const boundary = "cap" + Date.now();
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\ncontent-type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\ncontent-type: application/octet-stream\r\n\r\n`),
+    await readFile(file),
+    Buffer.from(`\r\n--${boundary}--`),
+  ]);
+  const r = await fetch(`https://www.googleapis.com/upload/youtube/v3/captions?uploadType=multipart&part=snippet`, {
+    method: old ? "PUT" : "POST", headers: { authorization: `Bearer ${token}`, "content-type": `multipart/related; boundary=${boundary}` }, body,
+  });
+  const out = await r.json();
+  if (!r.ok) throw new Error(`자막 실패 (${lang}): ${r.status} ${JSON.stringify(out.error)}`);
+  // 올렸다고 나왔는데 목록에 없던 적이 있음 (2026-11-03 인도네시아어) → 목록에서 다시 확인
+  const after = await (await fetch(`https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${id}`, { headers: { authorization: `Bearer ${token}` } })).json();
+  if (!(after.items ?? []).some((c) => c.snippet.language === lang && c.snippet.trackKind !== "asr")) throw new Error(`자막 ${lang}: 올렸다고 나왔지만 목록에 없음 - 다시 올릴 것`);
+  console.log(`자막 ${old ? "바꿈" : "올림"} (목록 확인): ${id} ${lang}`);
+}
+
+// 공개 범위만 바꾸기: node scripts/youtube.mjs publish <영상ID> [public|unlisted|private] (2026-11-06)
+async function publish(id, privacy = "public") {
+  const token = await accessToken();
+  const cur = await (await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status&id=${id}`, { headers: { authorization: `Bearer ${token}` } })).json();
+  const status = cur.items?.[0]?.status;
+  if (!status) throw new Error(`영상 없음: ${id}`);
+  const r = await fetch("https://www.googleapis.com/youtube/v3/videos?part=status", {
+    method: "PUT", headers: { authorization: `Bearer ${token}`, "content-type": "application/json; charset=UTF-8" },
+    body: JSON.stringify({ id, status: { ...status, privacyStatus: privacy, publishAt: undefined } }),
+  });
+  const out = await r.json();
+  if (!r.ok) throw new Error(`공개 범위 바꾸기 실패: ${r.status} ${JSON.stringify(out.error)}`);
+  console.log(`${id} · ${out.status.privacyStatus}`);
+}
+
 const [cmd, ...args] = process.argv.slice(2);
-const run = { auth, whoami, upload, queue }[cmd];
+const run = { auth, whoami, upload, queue, status, thumb, update, playlist, caption, publish }[cmd];
 if (!run) {
-  console.log("사용법: node scripts/youtube.mjs auth | whoami | upload <영상.mp4> <meta.json> [--dry-run] | queue [schedule.json]");
+  console.log("사용법: node scripts/youtube.mjs auth | whoami | upload <영상.mp4> <meta.json> [--dry-run] | queue [schedule.json] | status <영상ID...> | thumb <영상ID> <그림> | update <영상ID> <meta.json> [--dry-run] | playlist <playlist.json> | caption <영상ID> <언어> <파일.srt>");
   process.exit(1);
 }
 await run(...args);

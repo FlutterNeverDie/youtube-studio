@@ -1,5 +1,5 @@
 // 기울인 지도 장면(mapscene)을 한 장씩 찍는다 - 사이트(chronomap) 개발 서버의 장면 층(?scene, 운영 사이트에는 없음).
-// 실행: node scripts/map-scene.mjs --scene episodes/<편>/maps/<장면>.json --frames N [--marks '{"turn":0.6}'] [--url http://localhost:3000/?scene] [--only 0,0.5,1]
+// 실행: node scripts/map-scene.mjs --scene episodes/<편>/maps/<장면>.json --frames N [--size 540x960(세로 쇼츠)] [--fast(속도 검사 무시)] [--marks '{"turn":0.6}'] [--url http://localhost:3000/?scene] [--only 0,0.5,1]
 //   → public/ep/<편>/maps/<장면>/00000.jpg … (2560×1440, JPEG 95) + meta.json {frames, fps, size, sceneHash}
 //   먼저 chronomap에서 `npm run dev`(개발 서버 3000). --only는 시험용: 그 t들만 찍어 t0.50.jpg처럼 남긴다.
 //
@@ -21,9 +21,9 @@
 //                                         산꼭대기 만년설은 snowline으로 따로
 //   "relief": 0.8,                        산 음영 세기 0~1. 산 장면은 0.5 안팎(진하면 그늘이 눈·초록을 덮는다), 평야는 0.8~0.9
 //   "snowline": 3400,                     눈선(m). 겨울 장면은 낮춘다
-//   "ground": "palette",                  "palette"(기본 - prep_terrain.py와 같은 식으로 토지 피복을 다시 칠함, 그늘 세피아·볕 크림) | "css"(예전 SVG판 색) | "raw"
-//   "palette": {"steppe","steppe_dry","green","forest","water"}   blender/shots의 palette와 같은 이름·기본값(지도 거리에선 숲을 세이지와 반씩 섞음)
-//   "grade": {"exposure","lift","white","contrast","saturation","vignette","grain","curve"}   blender/post.py와 같은 마감(curve = 필름 곡선 세기 0~1).
+//   "ground": "palette",                  "palette"(기본 - 토지 피복을 다시 칠함, 그늘 세피아·볕 크림) | "css"(예전 SVG판 색) | "raw"
+//   "palette": {"steppe","steppe_dry","green","forest","water"}   기본값(지도 거리에선 숲을 세이지와 반씩 섞음)
+//   "grade": {"exposure","lift","white","contrast","saturation","vignette","grain","curve"}   필름 마감(curve = 필름 곡선 세기 0~1).
 //                                         film 테마면 기본으로 켜지고 null이면 끔. 지금은 땅 층에만(부대·화살표는 7-3·7-4에서)
 //   "unitScale": 1,                       부대 그림 크기 배율(1 = 키 약 22px@1280 폭 = 영상 44px, 원근에 따라 가까우면 크게)
 //   "marks": {"turn": 0.55, "close": 0.72},
@@ -51,6 +51,9 @@
 //       차례대로 쓰러져 자리에 남아 흐려진다. 그림 크기는 무리 안 간격에 맞춰져 멀리서는 점, 다가가면 실루엣(radius가 작으면 빽빽한 점)
 //       swarm.shape: "host"(기본, 앞이 넓은 무리) | "mass"(둥근 덩어리 - 진 안의 병사) | "ring"(포위 고리 - path 자리가 고리 가운데,
 //       radius = 바깥 반지름, "inner" = 안쪽 비율(기본 0.6), 각자 가운데를 봄, 밀어내기에서 빠짐). 패주는 가장 가까운 적의 반대쪽으로 짧게
+//   units[].layer: 숫자(기본 0) - 큰 쪽을 나중에(위에) 그림. 포위해 덮는 무리에 1 (같은 층은 부대 기준점 화면 y 순서)
+//   units[].fallFrom: "front"(기본, 앞줄부터) | "edge"(가장자리부터 쓰러짐 - 감싸일 때 바깥부터 사라짐)
+//   units[].press: false - 적과 겹쳐도 밀어내거나 빼내지 않음(포위처럼 일부러 겹칠 때). 쓰러진 병사는 말 없이 어둡게 누웠다가 약 2.4초에 사라짐
 //   "forts": [{"kind":"wagons", "side":"rus", "at":[37.0,47.55], "radius":0.09(도), "n":34, "show":[…], "fade":[…]}]
 //       수레 n대 원진(안쪽은 밟힌 맨땅, 수레 크기는 대군 실루엣 키에 맞춤). 포위된 진 = forts + 같은 자리 그 진영 "mass"(radius ≈ 0.8×fort)
 //       + 적 "ring"(radius 3~4×fort, inner 0.5). 버티는 날수는 count 시간표로 줄인다. radius가 곧 그리는 크기라 크게 쓰면 그게 과장
@@ -123,6 +126,70 @@ const scenePath = join(ROOT, args.scene);
 const scene = JSON.parse(await readFile(scenePath, "utf8"));
 const marks = args.marks ? JSON.parse(args.marks) : {};
 const frames = Number(args.frames ?? 0);
+
+// 속도 검사 (2026-10-23 사용자: "게임처럼 순식간에 감싸 버림") - 부대가 화면에서 가장 빠른 순간 1초에 화면 폭의 2.5%보다 빨리 움직이거나 3초 안에 끝나는 이동이면 움직이면 찍지 않는다
+// 화면 폭(도) ≈ 450 × (CSS 폭 / 1280) / zoom, 세로는 위도를 cos(위도)로 나눠 메르카토르 폭에 맞춤. --fast로만 무시
+{
+  const allMarks = { ...(scene.marks ?? {}), ...marks };
+  const T = (t) => {
+    if (typeof t === "number") return t;
+    const m = /^([a-zA-Z_]\w*)\s*([+-]\s*[\d.]+)?$/.exec(String(t));
+    return m && m[1] in allMarks ? allMarks[m[1]] + Number((m[2] ?? "0").replace(/\s/g, "")) : NaN;
+  };
+  const [CW, CH] = String(args.size ?? "1280x720").split("x").map(Number);
+  const cams = (scene.camera ?? []).map((c) => ({ t: T(c.t), z: c.zoom })).filter((c) => !Number.isNaN(c.t)).sort((a, b) => a.t - b.t);
+  const zoomAt = (t) => {
+    if (!cams.length) return 50;
+    if (t <= cams[0].t) return cams[0].z;
+    for (let i = 1; i < cams.length; i++) if (t <= cams[i].t) return cams[i - 1].z + ((cams[i].z - cams[i - 1].z) * (t - cams[i - 1].t)) / (cams[i].t - cams[i - 1].t);
+    return cams[cams.length - 1].z;
+  };
+  const secs = (frames || 300) / 30;
+  const bad = [];
+  for (const u of scene.units ?? []) {
+    const p = (u.path ?? []).map((k) => ({ ...k, t: T(k.t) }));
+    for (let i = 1; i < p.length; i++) {
+      const a = p[i - 1], b = p[i];
+      if (Number.isNaN(a.t) || Number.isNaN(b.t) || b.t <= a.t || !a.at || !b.at) continue;
+      const lat = ((a.at[1] + b.at[1]) / 2) * Math.PI / 180;
+      const d = Math.hypot(b.at[0] - a.at[0], (b.at[1] - a.at[1]) / Math.cos(lat));
+      const span = (450 * Math.min(CW, CH)) / 1280 / zoomAt((a.t + b.t) / 2);
+      // 키 사이는 가감속(inOut)이라 가장 빠른 순간은 평균의 약 1.6배 - 그 순간 속도로 잰다 (2026-10-23 사용자: 평균 3%였던 포위가 "현실에서 불가능")
+      const perSec = (1.6 * d) / span / ((b.t - a.t) * secs);
+      const limit = 0.025; // 돌격도 같은 한도 (가장 빠른 순간 기준) - 2026-10-23 4%에서도 "말도 안 되는 속도"라 낮춤
+      const dur = (b.t - a.t) * secs;
+      if (d > 0.01 && dur < 3) bad.push(`${u.id} ${a.t.toFixed(2)}→${b.t.toFixed(2)}: ${dur.toFixed(1)}초 만에 이동 - 기동은 3초 이상`);
+      if (perSec > limit) bad.push(`${u.id} ${a.t.toFixed(2)}→${b.t.toFixed(2)} (${a.state ?? ""}): 1초에 화면의 ${(perSec * 100).toFixed(0)}% (한도 ${Math.round(limit * 100)}%) - 시간을 늘리거나 거리를 줄일 것`);
+    }
+  }
+  // 적끼리 겹침 검사 (2026-10-23 사용자: "포위 중 연합군 흰 말이 갑자기 몽골 말로 전체가 바뀜", "죽었던 흰 말이 다시 살아남")
+  // 서로 다른 편 무리의 몸통이 크게 겹치면 한쪽이 다른 쪽 위에 덮여 그려져 색이 통째로 바뀐 것처럼 보이고, 비켜날 때 덮였던 병사가 되살아난 듯 드러난다.
+  // 경로를 0.005 간격으로 따라가며 (거리 < 두 반지름 합의 60%)인 순간이 있으면 멈춤 - 포위는 둘러 가는 경로(가운데 키)로
+  const posAt = (p, t) => {
+    if (!p.length) return null;
+    if (t <= p[0].t) return p[0].at;
+    for (let i = 1; i < p.length; i++) if (t <= p[i].t) { const k = (t - p[i - 1].t) / (p[i].t - p[i - 1].t); return [p[i - 1].at[0] + (p[i].at[0] - p[i - 1].at[0]) * k, p[i - 1].at[1] + (p[i].at[1] - p[i - 1].at[1]) * k]; }
+    return p[p.length - 1].at;
+  };
+  const teamOf = (side) => scene.sides?.[side]?.team ?? side;
+  const us = (scene.units ?? []).filter((u) => u.swarm && u.path?.length).map((u) => ({ id: u.id, team: teamOf(u.side), r: u.swarm.radius ?? 0.3, p: u.path.map((k) => ({ t: T(k.t), at: k.at })).filter((k) => !Number.isNaN(k.t)) }));
+  const seen = new Set();
+  for (let t = 0; t <= 1; t += 0.005)
+    for (let i = 0; i < us.length; i++)
+      for (let j = i + 1; j < us.length; j++) {
+        const a = us[i], b = us[j];
+        if (a.team === b.team) continue;
+        const pa = posAt(a.p, t), pb = posAt(b.p, t);
+        const lat = (pa[1] * Math.PI) / 180;
+        const d = Math.hypot(pa[0] - pb[0], (pa[1] - pb[1]) / Math.cos(lat)) * Math.cos(lat);
+        const key = `${a.id}-${b.id}`;
+        if (d < 0.6 * (a.r + b.r) && !seen.has(key)) { seen.add(key); bad.push(`${a.id}·${b.id} t=${t.toFixed(2)}: 적 무리가 크게 겹침 - 덮여 색이 바뀌어 보이거나 비켜날 때 되살아난 듯 보임. 둘러 가는 경로로`); }
+      }
+  if (bad.length) {
+    console.error("너무 빠른 움직임·겹침 (02 속도·간격·멈춤):\n  " + bad.join("\n  "));
+    if (!args.fast) process.exit(1);
+  }
+}
 const only = args.only ? String(args.only).split(",").map(Number) : null;
 // episodes/<편>/maps/<장면>.json → public/ep/<편>/maps/<장면>/
 const ep = basename(dirname(dirname(scenePath)));
@@ -174,8 +241,9 @@ const browser = await puppeteer.launch({
 try {
   const page = await browser.newPage();
   page.on("pageerror", (e) => console.error("페이지 오류:", e.message));
-  // 1280×720 CSS를 배율 2로 = 2560×1440 (선 굵기·그림 크기가 사이트 비율 그대로)
-  await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 2 });
+  // 1280×720 CSS를 배율 2로 = 2560×1440 (선 굵기·그림 크기가 사이트 비율 그대로). --size 540x960이면 세로 쇼츠 1080×1920
+  const [VW, VH] = String(args.size ?? "1280x720").split("x").map(Number);
+  await page.setViewport({ width: VW, height: VH, deviceScaleFactor: 2 });
   // 지형("terrain"): data/geo/terrain/<편>-<장면>/(없으면 terrain.mjs로 만든다). 그림은 이 페이지 요청을 가로채 파일로 준다(git 밖 자료라)
   let terrain;
   if (scene.terrain) {
@@ -268,7 +336,7 @@ try {
     }
     await writeFile(
       join(out, "meta.json"),
-      JSON.stringify({ frames, fps: 30, size: [2560, 1440], sceneHash, marks }, null, 2) + "\n",
+      JSON.stringify({ frames, fps: 30, size: [VW * 2, VH * 2], sceneHash, marks }, null, 2) + "\n",
     );
     console.log(`${out} (${frames}장)`);
   }

@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 CODE = Path(__file__).resolve().parent.parent
-HOME = Path.home() / "hwm"
+HOME = Path.home() / "ReStory"
 LANG_NAME = {"en": "영어", "ko": "한국어", "es": "스페인어"}
 # 한 줄 최대 글자 (유튜브·넷플릭스 권장 근처): 한·중·일은 좁게
 LINE = {"ko": 18, "ja": 18, "zh": 16}

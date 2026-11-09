@@ -897,9 +897,68 @@ def aftermath():
     return s
 
 
+# ---- 15. 채널 엔딩 테마(정확히 20초, 2026-10-26 사용자: "엔딩을 10초에서 20초로"): D 도리안, 첫 박에 북·낮은 금관 한 방 → 말발굽 셋잇단 위에
+#      샤쿠하치(초원 피리)·호른이 메인 테마 머리(A-D-F) → 마지막 D 열린 5도로 딱 끊고 울림만 (편 끝 최종 화면용) ----
+def ending():
+    s = Song(96)  # 1박 0.625초 - 32박 = 20초
+    s.length = 20.0  # render가 20초로 맞추고 마지막 0.5초 페이드
+    E = 26  # 끝 화음 박 (16.25초) - 앞 12박은 첫 소절, 12~24박은 테마 두 번째(더 크게), 24~26박 롤
+    prog = ["Dm", "C", "Bb", "C"]
+    vln, cello, bass = s.part(0, STRINGS, 44), s.part(10, CELLO, 76), s.part(1, CONTRABASS, 88)
+    horn, trb, tuba = s.part(3, HORN, 56), s.part(8, TROMBONE, 80), s.part(15, TUBA, 90)
+    flute, fiddle = s.part(2, SHAKUHACHI, 60), s.part(12, FIDDLE, 70)
+    timp, tai, dr = s.part(6, TIMPANI), s.part(7, TAIKO), s.part(9, 0)
+    s.legato |= {2, 12}
+    # 0박: 전체 한 방 (북·징·낮은 금관 D 열린 5도)
+    dr.extend([(0, 2, BDRUM, 124), (0, 4, GONG, 96)])
+    tai.extend([(0, 1, 41, 124), (0.5, 0.5, 45, 100)])
+    timp.extend([(0, 1, note("D2"), 124), (0.5, 0.5, note("A2"), 104)])
+    trb.extend([(0, 1.2, note(n), 116) for n in ("D2", "A2", "D3")])
+    tuba.append((0, 1.2, note("D2"), 116))
+    # 1~12박: 말발굽(현 저음 셋잇단) + 손북 + 낮은 지속음(열린 5도 - 초원 드론)
+    gallop(cello, prog[:3], 0, 70, up=12)
+    hand_drum(dr, 3, 0, 72)
+    cello.extend([(0, 12, note("D2"), 62), (0, 12, note("A2"), 58)])
+    bass.append((0, 12, note("D2"), 64))
+    taiko(tai, 3, 0, 96, (0, 1.5, 2, 3))
+    # 선율: 샤쿠하치가 메인 테마 머리, 호른이 한 마디 늦게 받음, 바이올린(마두금 대신) 높은 지속음
+    melody(flute, [("A4", 1), ("D5", 1), ("F5", 1.5), ("E5", 0.5), ("D5", 1), ("C5", 1), ("A4", 2), ("G4", 1), ("A4", 1), ("C5", 1), ("D5", 1)], 0.5, 90)
+    melody(horn, [("-", 4), ("A3", 1), ("D4", 1), ("F4", 2), ("E4", 1), ("C4", 1), ("D4", 2)], 0, 96)
+    pads(vln, prog[:3], 0, 58, up=12)
+    melody(fiddle, [("-", 8), ("A5", 2), ("C6", 1), ("D6", 1)], 0, 78)
+    # 12~24박: 테마 두 번째 - 바이올린·호른이 함께 크게, 말발굽·북 계속, 대북은 마디마다
+    gallop(cello, ["Bb", "C", "Dm"], 12, 78, up=12)
+    hand_drum(dr, 3, 12, 80)
+    taiko(tai, 3, 12, 108, (0, 1, 1.5, 2, 3))
+    cello.extend([(12, 12, note("D2"), 66)])
+    bass.append((12, 12, note("D2"), 70))
+    pads(vln, ["Bb", "C", "Dm"], 12, 66, up=12)
+    melody(fiddle, [("A5", 1), ("D6", 1), ("F6", 1.5), ("E6", 0.5), ("D6", 1), ("C6", 1), ("A5", 2), ("Bb5", 1), ("C6", 1), ("D6", 2)], 12, 92)
+    melody(horn, [("A3", 1), ("D4", 1), ("F4", 1.5), ("E4", 0.5), ("D4", 1), ("C4", 1), ("A3", 2), ("Bb3", 1), ("C4", 1), ("D4", 2)], 12, 104)
+    melody(flute, [("-", 8), ("D5", 2), ("E5", 1), ("F5", 1)], 12, 88)
+    trb.extend([(20, 4, note(n), 92) for n in ("D3", "F3", "A3")])
+    # 24~26박: 팀파니 롤 크레셴도로 끝 화음을 부름
+    roll(timp, 24, 2, note("A2"), 50, 122)
+    dr.extend([(24 + k * 0.5, 0.5, SNARE, 70 + k * 12) for k in range(4)])
+    # E박(16.25초): 끝 - D 열린 5도(장·단 없이 초원의 소리) 한 방 + 징, 2박 반 끌고 울림만
+    dr.extend([(E, 2, BDRUM, 124), (E, 4, GONG, 104), (E, 1, CRASH, 96)])
+    tai.append((E, 1, 41, 124))
+    timp.append((E, 1, note("D2"), 124))
+    trb.extend([(E, 5, note(n), 112) for n in ("D2", "A2", "D3")])
+    tuba.append((E, 5, note("D2"), 112))
+    horn.extend([(E, 5, note(n), 104) for n in ("D4", "A4")])
+    vln.extend([(E, 5, note(n), 100) for n in ("D5", "A5", "D6")])
+    cello.extend([(E, 5, note(n), 100) for n in ("D3", "A3")])
+    bass.append((E, 5, note("D2"), 100))
+    flute.append((E, 5, note("D5"), 84))
+    for ch in (0, 1, 3, 8, 10, 15, 2):
+        s.swell(ch, (E, 0), (E + 2.5, -2), (E + 5.5, -12))
+    return s
+
+
 SONGS = {"main": main, "battle": battle, "tension": tension, "lament": lament, "triumph": triumph,
          "steppe": steppe, "intrigue": intrigue, "march": march, "chase": chase, "siege": siege,
-         "discovery": discovery, "hook": hook, "outro": outro, "aftermath": aftermath}
+         "discovery": discovery, "hook": hook, "outro": outro, "aftermath": aftermath, "ending": ending}
 
 
 # GM 악기 → VSCO 악기: [(음역 아래 끝, 긴 음 sfz, 짧은 음 sfz)] - 음역이 높은 것부터. 짧은 음 = 0.36초 이하(빠른 8분음)
@@ -1065,6 +1124,10 @@ def render(name):
     # 작은 소리 기울기는 예전(tanh(0.8x)/tanh(0.8)*0.89)과 같고 천장은 0.98 - 예전 식은 1.34까지 올라가 꼭대기가 잘렸음
     x = 0.98 * np.tanh(x * 1.094)
     fade = int(1.5 * RATE)
+    if getattr(s, "length", None):  # 길이가 정해진 곡(엔딩 10초): 그 길이로 자르고(모자라면 무음) 마지막 0.5초만 페이드
+        n = int(s.length * RATE)
+        x = np.concatenate([x[:n], np.zeros((max(0, n - len(x)), 2), np.float32)])
+        fade = int(0.5 * RATE)
     x[-fade:] *= np.linspace(1, 0, fade)[:, None]
     with wave.open(str(OUT / f"{name}.wav"), "wb") as w:
         w.setnchannels(2)

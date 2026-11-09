@@ -17,7 +17,7 @@ type EpInfo = { id: string; playlist: string; title: string };
 // 검사 결과 한 줄 (scripts/checklib.py item과 같은 모양). 장면 번호는 검사에 보낸 장면표 기준
 type Item = { scene: number | null; lang: string | null; field: string | null; rule: string; group?: string | null; level: "error" | "warn"; msg: string; span?: [number, number] | null; match?: string | null; suggest?: string[] | null; source: string; stale?: boolean; engine?: string };
 const SOURCE_NAME: Record<string, string> = { text: "대본", pron: "발음", screen: "화면 글자", qa: "AI 검수", pacing: "리듬", length: "길이", zoom: "확대", voice: "목소리", mix: "소리 섞임" };
-const TYPE_NAME: Record<string, string> = { map: "지도", art: "그림", cutout: "오린 그림", line: "대사 카드", title: "제목", stamp: "도장", lapse: "연도 넘김", units: "부대", endcard: "최종 화면", mapscene: "기울인 지도", cinematic: "시네마틱" };
+const TYPE_NAME: Record<string, string> = { map: "지도", art: "그림", cutout: "오린 그림", line: "대사 카드", title: "제목", stamp: "도장", lapse: "연도 넘김", units: "부대", endcard: "최종 화면", mapscene: "기울인 지도" };
 // 장면표 칸 경로("i18n.ko", "show.labels.0.text")로 읽고 쓰기
 const getAt = (o: unknown, path: string): unknown => path.split(".").reduce<unknown>((x, k) => (x && typeof x === "object" ? (x as Record<string, unknown>)[k] : undefined), o);
 const setAt = (o: Record<string, unknown>, path: string, v: unknown) => {
@@ -119,7 +119,7 @@ const computeTiming = (d: Data): Timing => {
   return { langs, per, frames, starts, tlAt };
 };
 
-const TYPE_COLOR: Record<string, string> = { map: "#33475b", art: "#474747", cutout: "#4f4536", line: "#6a2c2e", title: "#463c5e", stamp: "#625632", lapse: "#2d4b58", units: "#3b4733", endcard: "#333", mapscene: "#2f4d44", cinematic: "#4d3f2f" };
+const TYPE_COLOR: Record<string, string> = { map: "#33475b", art: "#474747", cutout: "#4f4536", line: "#6a2c2e", title: "#463c5e", stamp: "#625632", lapse: "#2d4b58", units: "#3b4733", endcard: "#333", mapscene: "#2f4d44" };
 const MUSIC_COLOR: Record<string, string> = { main: "#33475b", battle: "#6a2c2e", tension: "#5a4f2c", lament: "#433d5c", triumph: "#585130" };
 const LANG_NAME: Record<string, string> = { en: "영어", ko: "한국어", es: "스페인어", ja: "일본어", pt: "포르투갈어", fr: "프랑스어", de: "독일어", hi: "힌디어", zh: "중국어", id: "인도네시아어", ar: "아랍어" };
 const tc = (f: number) => {
@@ -1211,7 +1211,7 @@ function Inspector({ part, d, sel, cue, timing, issues, sounds, update, reorder,
           </div>
         </div>
         </>}
-        {(() => { const sh = sc.show as { type: string; parallax?: number }; return sh.type === "mapscene" || sh.type === "cinematic" || (sh.type === "art" && !!sh.parallax); })() ? (
+        {(() => { const sh = sc.show as { type: string; parallax?: number }; return sh.type === "mapscene" || (sh.type === "art" && !!sh.parallax); })() ? (
           <p className="dim prerender">미리 찍어 둔 장면이에요({TYPE_NAME[(sc.show as { type: string }).type] || (sc.show as { type: string }).type}{(sc.show as { parallax?: number }).parallax ? " · 옛 그림 2.5D" : ""}). 카메라·움직임을 바꾸려면 Claude에게 말해 주세요 - 다시 찍어야 반영돼요</p>
         ) : (sc.show as { type: string }).type === "cutout" ? (() => {
           const sh = sc.show as CutShow;
@@ -1272,26 +1272,26 @@ type CharSpec = Record<string, unknown> & { speakers?: string[]; names?: string[
 const CHAR_FIELDS: { group: string; items: { k: string; label: string; type: "color" | "select" | "check"; options?: string[] }[] }[] = [
   { group: "얼굴", items: [
     { k: "skin", label: "피부", type: "color" },
-    { k: "eyes", label: "눈", type: "select", options: ["almond", "narrow"] },
+    { k: "eyes", label: "눈", type: "select", options: ["almond", "narrow", "round"] },
     { k: "eye_color", label: "눈동자", type: "color" },
     { k: "mood", label: "기본 표정", type: "select", options: ["calm", "stern", "angry", "worried", "smug"] },
-    { k: "age", label: "나이", type: "select", options: ["adult", "old"] },
+    { k: "age", label: "나이", type: "select", options: ["child", "adult", "old"] },
     { k: "scar", label: "흉터", type: "check" },
   ] },
   { group: "머리", items: [
     { k: "hair", label: "머리색", type: "color" },
     { k: "hair_style", label: "머리 모양", type: "select", options: ["braids", "long", "short"] },
     { k: "brow", label: "눈썹", type: "color" },
-    { k: "beard", label: "수염", type: "select", options: ["none", "mustache", "goatee", "full"] },
+    { k: "beard", label: "수염", type: "select", options: ["none", "mustache", "thin", "goatee", "short", "full", "droop", "long"] },
     { k: "beard_color", label: "수염색", type: "color" },
   ] },
   { group: "모자", items: [
-    { k: "hat", label: "종류", type: "select", options: ["none", "fur", "helmet", "crown", "turban", "scarf", "hood"] },
+    { k: "hat", label: "종류", type: "select", options: ["none", "khan", "fur", "fur_flaps", "fur_peak", "helmet", "boqta", "cuman", "rus_helmet", "crown_cap", "georgian_crown", "turban", "turban_helmet", "scarf", "hood"] },
     { k: "hat_color", label: "색", type: "color" },
     { k: "fur", label: "털·가장자리", type: "color" },
   ] },
   { group: "옷", items: [
-    { k: "outfit", label: "종류", type: "select", options: ["deel", "armor", "gown", "robe"] },
+    { k: "outfit", label: "종류", type: "select", options: ["deel", "lamellar", "mail", "gown", "robe"] },
     { k: "cloth", label: "옷감", type: "color" },
     { k: "trim", label: "깃·장식", type: "color" },
     { k: "belt", label: "허리띠", type: "color" },
@@ -1301,7 +1301,9 @@ const CHAR_FIELDS: { group: string; items: { k: string; label: string; type: "co
 const OPT_NAME: Record<string, string> = {
   almond: "보통", narrow: "가늘게", calm: "차분", stern: "엄격", angry: "화남", worried: "걱정", smug: "능청", adult: "어른", old: "노인",
   braids: "땋은 머리", long: "긴 머리", short: "짧은 머리", none: "없음", mustache: "콧수염", goatee: "턱수염", full: "덥수룩",
-  fur: "털모자", helmet: "투구", crown: "왕관", turban: "터번", scarf: "머릿수건", hood: "두건", deel: "몽골 옷", armor: "갑옷", gown: "유럽 옷", robe: "긴 옷",
+  fur: "털모자", helmet: "몽골 투구", crown: "왕관", turban: "터번", scarf: "머릿수건", hood: "두건", deel: "몽골 옷", armor: "갑옷", gown: "왕족 긴 옷", robe: "페르시아 긴 옷",
+  round: "동그랗게", child: "아이", thin: "가는 콧수염", short: "짧은 수염", droop: "늘어진 콧수염", long: "긴 수염", khan: "칸 흰 모자", fur_flaps: "귀덮개 털모자", fur_peak: "뾰족 털모자",
+  boqta: "보크타", cuman: "쿠만 모자", rus_helmet: "루스 투구", crown_cap: "공후 모자", georgian_crown: "조지아 왕관", turban_helmet: "터번 투구", lamellar: "미늘 갑옷", mail: "사슬 갑옷",
 };
 
 function CharFigure({ id, pose, v, talk, t, seed = 0 }: { id: string; pose: string; v: number; talk?: boolean; t: number; seed?: number }) {

@@ -1,5 +1,5 @@
 {
- "_설명": "채널 인물 캐릭터 설계 (Claude가 편마다 추가, 같은 인물은 편이 바뀌어도 그대로 재사용). ko = 한국어 이름, about = 영상에서 하는 일(내부 확인용, 한두 줄), speakers = 장면표 speaker 값(대사 카드에 이 캐릭터가 나옴), names = names.json 이름. 칸: skin·hair·hair_style(braids|long|short)·face(oval|round|square)·eyes(almond|narrow|round)·eye_color·brow·mood(calm|stern|angry|worried|smug)·age(adult|old)·scar·beard(none|mustache|goatee|full|droop|short|long)·beard_color·hat(none|fur|fur_flaps|fur_peak|cuman|helmet|rus_helmet|crown|crown_cap|georgian_crown|boqta|turban|turban_helmet|scarf|hood)·hat_color·hat_mark(fur_peak 앞 십자 색)·fur·plume(helmet 술·turban 깃털 색)·veil(georgian_crown 면사포 색)·steel(turban_helmet 쇠 색)·outfit(deel|armor|lamellar|mail|gown|robe)·cloth·trim·belt·inner(robe 안쪽)·surcoat(mail 겉옷 띠)·sleeve·cuff(손짓 소매·소매 끝)·fur_collar·cape·cape_style(rus = 한쪽 어깨 브로치)·pendant(cross)·back([bow, quiver, spear])·quiver·extra_head·extra_body(직접 그린 SVG 조각, 600×720 판, 얼굴 가운데 300,285). 고친 뒤: python3 audio/characters.py build <id>",
+ "_설명": "채널 인물 캐릭터 설계 (Claude가 편마다 추가, 같은 인물은 편이 바뀌어도 그대로 재사용). ko = 한국어 이름, about = 영상에서 하는 일(내부 확인용, 한두 줄), speakers = 장면표 speaker 값(대사 카드에 이 캐릭터가 나옴), names = names.json 이름. 칸: skin·hair·hair_style(braids|long|short)·face(oval|round|square)·eyes(almond|narrow|round)·eye_color·brow·mood(calm|stern|angry|worried|smug)·age(adult|old)·scar·beard(none|mustache|thin|goatee|full|droop|short|long)·beard_color·hat(none|khan|fur|fur_flaps|fur_peak|cuman|helmet|rus_helmet|crown|crown_cap|georgian_crown|boqta|turban|turban_helmet|scarf|hood)·hat_color·hat_mark(fur_peak 앞 십자 색)·fur·plume(helmet 술·turban 깃털 색)·veil(georgian_crown 면사포 색)·steel(turban_helmet 쇠 색)·outfit(deel|armor|lamellar|mail|gown|robe)·cloth·trim·belt·inner(robe 안쪽)·surcoat(mail 겉옷 띠)·sleeve·cuff(손짓 소매·소매 끝)·fur_collar·cape·cape_style(rus = 한쪽 어깨 브로치)·pendant(cross)·back([bow, quiver, spear])·quiver·sex(f)·age(child|adult|old)·plates(미늘 색)·lace(미늘 끈 색)·collar(fur)·sword(true|saber)·boots·boot_style(gutal|plain - 없으면 era로)·fig {bulk, head}(덩치·머리 크기를 body 대신 직접). 그림체는 2026-10-26 전신(audio/characters.py 머리 주석). 고친 뒤: python3 audio/characters.py build <id> | 고증·체형 칸(2026-10-23, scripts/check-chars.py가 게이트): era {culture, century} · sources [{what: 모자|옷|신발|무기…, ref: 초상화·세밀화·유물·연구서 이름, 모르면 '단순하게'}] · rank(king|noble|general|soldier|commoner|cleric|captive|child) · body {height 0.6~1.3, build slim|average|stocky|heavy, basis: 기록 또는 나이·역할 근거} · stages(같은 인물이 편·장면마다 달라질 때, 예: child/young/captive - {height, build, basis, speakers, 바꿀 그리기 칸}. public/chars/<id>_<단계>/로 그려지고 장면표 stage 또는 단계의 speakers로 고름). 원칙은 docs/guide/02 인물 캐릭터",
  "characters": {
   "temujin": {
    "ko": "테무친",
@@ -16,14 +16,57 @@
    "hair_style": "braids",
    "eyes": "narrow",
    "mood": "stern",
-   "beard": "none",
+   "beard": "mustache",
    "hat": "fur",
    "outfit": "deel",
    "cloth": "#4d6b8a",
    "trim": "#c9a24e",
    "belt": "#8a5a2b",
    "hat_color": "#7a2e22",
-   "fur": "#6b4a2e"
+   "fur": "#6b4a2e",
+   "era": {
+    "culture": "몽골 (보르지긴 씨족)",
+    "century": 12
+   },
+   "rank": "noble",
+   "body": {
+    "height": 1.05,
+    "build": "average",
+    "basis": "키 기록 없음 - 칸이 된 뒤(칭기즈칸 1.15)보다 작게, 젊은 족장"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "털 테 두른 몽골 모자 - 『집사』 세밀화의 초원 사람 모자. 젊은 시절 그림은 없어 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ],
+   "stages": {
+    "child": {
+     "height": 0.72,
+     "build": "slim",
+     "age": "child",
+     "basis": "아버지를 잃고 버림받은 9살~10대 초(『몽골비사』) - 작고 마르게",
+     "beard": "none"
+    },
+    "young": {
+     "height": 1.0,
+     "build": "average",
+     "speakers": [
+      "YOUNG TEMÜJIN"
+     ],
+     "basis": "토그릴을 찾아간 10대 후반 - 어린 모습(0.72)과 확실히 다르게 키를 키우고 얇은 콧수염",
+     "beard": "thin"
+    }
+   },
+   "beard_color": "#241a12"
   },
   "genghis": {
    "ko": "칭기즈칸",
@@ -34,21 +77,47 @@
    "names": [
     "Genghis Khan"
    ],
-   "skin": "#e2ad80",
-   "hair": "#2a2018",
+   "skin": "#dcae84",
+   "hair": "#3a2a1e",
    "eyes": "narrow",
    "mood": "stern",
    "age": "old",
    "beard": "mustache",
-   "beard_color": "#5b4a3a",
-   "hat": "fur",
+   "beard_color": "#5b4f45",
+   "hat": "khan",
    "hat_color": "#f2ead8",
-   "fur": "#8a6a48",
-   "trim": "#d9a92e",
+   "fur": "#7a5638",
+   "trim": "#c9a24a",
    "outfit": "deel",
-   "cloth": "#9b2f24",
-   "belt": "#d9a92e",
-   "cape": "#6e4a2e"
+   "cloth": "#9c3a2c",
+   "belt": "#2f4a5e",
+   "cape": "#5b3d27",
+   "collar": "fur",
+   "face": "round",
+   "era": {
+    "culture": "몽골 제국",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 1.15,
+    "build": "stocky",
+    "basis": "주즈자니 『타바카트 이 나시리』(1250년대, 1220년경 그를 본 사람의 전언): 키가 크고 몸이 다부졌으며 얼굴 수염이 적고 희었다"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "원 황제 초상첩의 칭기즈칸 초상(타이베이 고궁박물원) - 흰 펠트 모자 + 털 테. 흰색이 칸의 색, 금관 없음"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록. 옷 색(붉은색)은 채널 화면용이고 기록이 아님, 털 깃·망토로 신분"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ]
   },
   "hoelun": {
    "ko": "호엘룬",
@@ -64,12 +133,37 @@
    "hair_style": "long",
    "eyes": "narrow",
    "mood": "worried",
-   "hat": "scarf",
-   "hat_color": "#3f6b5c",
-   "trim": "#d9b45a",
+   "hat": "boqta",
+   "hat_color": "#4a3e3a",
+   "trim": "#8a6a48",
    "outfit": "deel",
    "cloth": "#6b4a7a",
-   "belt": "#b5863a"
+   "belt": "#b5863a",
+   "sex": "f",
+   "era": {
+    "culture": "몽골 (올코누트 출신, 보르지긴 부인)",
+    "century": 12
+   },
+   "rank": "noble",
+   "body": {
+    "height": 0.9,
+    "build": "slim",
+    "basis": "버림받은 뒤 들풀·물고기로 아이들을 먹인 시절(『몽골비사』) - 마르게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "보크타(높은 모자) - 『몽골비사』 74절 '높은 모자를 단단히 쓰고 치마를 동여매고'(원문 boqtaq, 번역에 따라 '머리를 감싸고'). 가난한 시절이라 장식 없이 짙은 펠트"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록 - 여자도 같은 델(카르피니)"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게 (긴 옷에 가려 앞코만)"
+    }
+   ]
   },
   "jamukha": {
    "ko": "자무카",
@@ -92,7 +186,31 @@
    "trim": "#9a9a9a",
    "outfit": "deel",
    "cloth": "#2f4a3a",
-   "belt": "#6e6e6e"
+   "belt": "#6e6e6e",
+   "era": {
+    "culture": "몽골 (자다란 씨족)",
+    "century": 12
+   },
+   "rank": "noble",
+   "body": {
+    "height": 1.03,
+    "build": "slim",
+    "basis": "기록 없음 - 테무친의 의형제·맞수, 키 비슷하고 날렵하게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "털 테 두른 몽골 모자 - 『집사』 세밀화, 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ]
   },
   "archer": {
    "ko": "제베 (그 궁수)",
@@ -136,7 +254,32 @@
    "trim": "#3a3a3a",
    "outfit": "deel",
    "cloth": "#5a2a22",
-   "belt": "#2a2a2a"
+   "belt": "#2a2a2a",
+   "era": {
+    "culture": "몽골 (타이치우드 씨족)",
+    "century": 12
+   },
+   "rank": "noble",
+   "plates": "#6e4a30",
+   "body": {
+    "height": 0.97,
+    "build": "heavy",
+    "basis": "기록 없음(타르구타이 키릴톡) - 악역 족장, 굵고 무겁게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "가죽 원뿔 투구 + 미늘 가리개 - 『집사』 세밀화의 몽골 투구, 색만 가죽으로"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ]
   },
   "inalchuq": {
    "ko": "이날추크 총독",
@@ -158,7 +301,31 @@
    "hat_color": "#f2e6c8",
    "trim": "#f2e6c8",
    "outfit": "robe",
-   "cloth": "#c47a2a"
+   "cloth": "#c47a2a",
+   "era": {
+    "culture": "호라즘 (오트라르 총독, 캉글리 투르크)",
+    "century": 13
+   },
+   "rank": "noble",
+   "body": {
+    "height": 0.98,
+    "build": "average",
+    "basis": "기록 없음 - 국경 도시 총독"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "흰 터번 - 『집사』 세밀화(약 80년 뒤 일칸국 그림)의 호라즘·페르시아 인물. 장식 없이 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "긴 겉옷(카바) + 깊은 깃 + 허리띠 - 같은 그림, 단순하게"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 장화 - 긴 옷에 가려 앞코만, 단순하게"
+    }
+   ]
   },
   "subutai": {
    "ko": "수부타이",
@@ -169,8 +336,8 @@
    "names": [
     "Subutai"
    ],
-   "skin": "#d6a273",
-   "hair": "#4a4038",
+   "skin": "#c99a70",
+   "hair": "#3a3430",
    "hair_style": "braids",
    "face": "square",
    "eyes": "narrow",
@@ -178,17 +345,40 @@
    "age": "old",
    "scar": true,
    "beard": "mustache",
-   "beard_color": "#9a9088",
-   "brow": "#6a6058",
+   "beard_color": "#6a625a",
    "hat": "fur_flaps",
-   "hat_color": "#5a4a3a",
-   "fur": "#8e8a80",
-   "trim": "#b08a4a",
+   "hat_color": "#6e5a3a",
+   "fur": "#7a5638",
+   "trim": "#a8884a",
    "outfit": "lamellar",
-   "cloth": "#6e5a44",
-   "belt": "#3a2a1e",
-   "sleeve": "#4a3a2c",
-   "cuff": "#8e8a80"
+   "cloth": "#4f5a3a",
+   "belt": "#2b1d14",
+   "plates": "#8a6440",
+   "lace": "#c9a25a",
+   "era": {
+    "culture": "몽골 제국 (우량카이 출신)",
+    "century": 13
+   },
+   "rank": "general",
+   "body": {
+    "height": 0.95,
+    "build": "stocky",
+    "basis": "기록 없음 - 대장장이 집안 출신 노장, 작고 땅딸막하게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "귀덮개 털모자 - 초원 겨울 모자(『집사』 세밀화), 노장이라 투구 대신. 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "가죽 미늘 갑옷 + 델 - 『집사』 세밀화·카르피니 기록"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ]
   },
   "jebe": {
    "ko": "제베",
@@ -200,27 +390,55 @@
    "names": [
     "Jebe"
    ],
-   "skin": "#dfa978",
-   "hair": "#1e1610",
+   "skin": "#d9a87c",
+   "hair": "#2e2119",
    "hair_style": "braids",
    "eyes": "narrow",
    "mood": "smug",
-   "beard": "goatee",
+   "beard": "thin",
    "hat": "helmet",
-   "hat_color": "#8a8c86",
-   "plume": "#a8402e",
+   "hat_color": "#8a9298",
+   "plume": "#a8332a",
    "fur": "#3e4a5a",
-   "trim": "#c9a24e",
+   "trim": "#c9a24a",
    "outfit": "lamellar",
-   "cloth": "#3e5a72",
-   "belt": "#7a4a2a",
+   "cloth": "#2f4a5e",
+   "belt": "#8a3b2c",
    "back": [
     "bow",
     "quiver"
    ],
    "quiver": "#6b3e22",
-   "sleeve": "#2f4458",
-   "cuff": "#c9a24e"
+   "plates": "#7d93a6",
+   "face": "oval",
+   "era": {
+    "culture": "몽골 제국",
+    "century": 13
+   },
+   "rank": "general",
+   "body": {
+    "height": 0.99,
+    "build": "slim",
+    "basis": "기록 없음 - 궁수 출신의 젊고 날랜 기병 대장"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "둥근 원뿔 쇠 투구 + 말총 술 + 미늘 목·귀 가리개 - 『집사』 세밀화·『몽고습래회사』(1293)의 몽골 병사"
+    },
+    {
+     "what": "옷",
+     "ref": "미늘 갑옷(라멜라) 조끼 + 델 - 같은 그림, 카르피니의 몽골 갑옷 기록"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    },
+    {
+     "what": "무기",
+     "ref": "몽골 합성궁 + 허리 화살통 - 카르피니 기록, 모양은 단순하게"
+    }
+   ]
   },
   "ogedei": {
    "ko": "우구데이",
@@ -345,13 +563,36 @@
    "hat": "turban",
    "hat_color": "#f2e8d2",
    "trim": "#2e6b4f",
-   "plume": "#efe6d2",
    "outfit": "robe",
    "cloth": "#3f6b4f",
    "inner": "#d9b45a",
    "belt": "#d9a92e",
    "cape": "#6b2a2a",
-   "cuff": "#d9a92e"
+   "cuff": "#d9a92e",
+   "era": {
+    "culture": "호라즘",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 1.04,
+    "build": "heavy",
+    "basis": "기록 없음 - 큰 제국의 샤, 풍채 있게(역할)"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "흰 터번 - 『집사』 세밀화의 호라즘 인물. 깃털 장식은 근거가 없어 뺌"
+    },
+    {
+     "what": "옷",
+     "ref": "긴 겉옷(카바) + 망토 - 같은 그림, 단순하게"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 장화 - 단순하게"
+    }
+   ]
   },
   "jalal": {
    "ko": "잘랄 앗딘",
@@ -379,7 +620,36 @@
    "belt": "#5a3a22",
    "cape": "#2a4a6a",
    "sleeve": "#6a6c68",
-   "cuff": "#d9a92e"
+   "cuff": "#d9a92e",
+   "sword": "saber",
+   "era": {
+    "culture": "호라즘",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 0.92,
+    "build": "average",
+    "basis": "키 기록은 확인 못 함 - 20대 젊은 전사, 아버지보다 작고 단단하게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "터번을 감은 뾰족 쇠 투구 + 사슬 목가리개 - 『집사』 세밀화의 이슬람 전사, 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "사슬 갑옷 + 가운데 겉옷 띠 - 같은 그림"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 장화 - 단순하게"
+    },
+    {
+     "what": "무기",
+     "ref": "굽은 칼 - 단순하게"
+    }
+   ]
   },
   "mstislav_bold": {
    "ko": "용맹공 므스티슬라프",
@@ -392,24 +662,52 @@
     "Mstislav the Bold",
     "Mstislav Mstislavich"
    ],
-   "skin": "#efc9a4",
-   "hair": "#7a4a2a",
+   "skin": "#e6bf9c",
+   "hair": "#6a4428",
    "hair_style": "short",
    "eyes": "almond",
-   "eye_color": "#3a5a7a",
    "mood": "angry",
-   "beard": "short",
-   "beard_color": "#8a5a32",
-   "brow": "#6a3e22",
+   "beard": "full",
+   "beard_color": "#6a4428",
    "hat": "rus_helmet",
-   "hat_color": "#a2a49e",
-   "trim": "#d9a92e",
+   "hat_color": "#9aa2a6",
+   "trim": "#c9a24a",
    "outfit": "mail",
    "belt": "#5a3a22",
-   "cape": "#a8402e",
+   "cape": "#a8332a",
    "cape_style": "rus",
-   "sleeve": "#7a7c76",
-   "cuff": "#a8402e"
+   "cloth": "#7a2a24",
+   "sword": true,
+   "boots": "#4a3324",
+   "face": "oval",
+   "era": {
+    "culture": "루스 (할리치 공국)",
+    "century": 13
+   },
+   "rank": "noble",
+   "body": {
+    "height": 1.1,
+    "build": "stocky",
+    "basis": "기록 없음 - '용맹공(우달로이)'이라 불린 전사 공후, 크고 다부지게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "루스 원뿔 투구(쉬샤크) + 코 가리개 + 사슬 목가리개 - 13세기 루스 투구 출토품(키르피치니코프 『고대 루스의 무기』), 금테는 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "사슬 갑옷 + 오른쪽 어깨 브로치 망토(코르즈노) - 『스뱌토슬라프 이즈보르니크』(1073) 세밀화의 공후 망토"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 장화 - 노브고로드 발굴 가죽 신발, 단순하게"
+    },
+    {
+     "what": "무기",
+     "ref": "곧은 칼(십자 날밑) - 루스 출토 칼, 단순하게"
+    }
+   ]
   },
   "mstislav_kiev": {
    "ko": "키예프의 므스티슬라프",
@@ -433,14 +731,39 @@
    "beard_color": "#c8c0b2",
    "brow": "#a8a094",
    "hat": "crown_cap",
-   "hat_color": "#c99a3a",
+   "hat_color": "#7a3a2a",
    "fur": "#3a2c22",
    "trim": "#d9a92e",
    "outfit": "gown",
    "cloth": "#2e4a6e",
    "belt": "#d9a92e",
    "cape": "#5a2a4a",
-   "cuff": "#d9a92e"
+   "cuff": "#d9a92e",
+   "cape_style": "rus",
+   "era": {
+    "culture": "루스 (키예프 대공국)",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 1.02,
+    "build": "heavy",
+    "basis": "기록 없음 - 60대 대공, 무겁고 느리게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "털 테 두른 둥근 공후 모자 - 『스뱌토슬라프 이즈보르니크』(1073) 세밀화. 보석·십자가는 근거가 없어 뺌"
+    },
+    {
+     "what": "옷",
+     "ref": "긴 겉옷 + 브로치 망토 - 같은 세밀화"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 장화 - 긴 옷에 가려 앞코만, 단순하게"
+    }
+   ]
   },
   "koten": {
    "ko": "쿠텐 칸",
@@ -467,7 +790,31 @@
    "outfit": "deel",
    "cloth": "#b08a3a",
    "belt": "#5a3a22",
-   "fur_collar": true
+   "fur_collar": true,
+   "era": {
+    "culture": "쿠만 (킵차크)",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 1.05,
+    "build": "average",
+    "basis": "기록 없음 - 쿠만 칸, 므스티슬라프의 장인"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "높은 뾰족 펠트 모자 + 털 챙 - 쿠만 돌 인물상(폴로베츠 바바, 11~13세기 - 크라쿠프 고고학박물관·옥스퍼드 피트 리버스 박물관)"
+    },
+    {
+     "what": "옷",
+     "ref": "카프탄 + 털 깃 + 허리띠 - 같은 돌상"
+    },
+    {
+     "what": "신발",
+     "ref": "장화 - 같은 돌상은 모양이 뚜렷하지 않아 초원 장화를 단순하게"
+    }
+   ]
   },
   "rusudan": {
    "ko": "루수단 여왕",
@@ -492,7 +839,32 @@
    "cloth": "#7a2a3a",
    "trim": "#d9b45a",
    "cape": "#2e4a3e",
-   "cuff": "#d9b45a"
+   "cuff": "#d9b45a",
+   "sex": "f",
+   "era": {
+    "culture": "조지아 왕국",
+    "century": 13
+   },
+   "rank": "king",
+   "body": {
+    "height": 0.91,
+    "build": "slim",
+    "basis": "기록 없음 - 젊은 여왕(1223년 20대 후반)"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "금 띠 왕관 + 면사포 - 바르지아·베타니아 수도원 벽화의 타마르 여왕(루수단의 어머니). 루수단 초상은 확인 못 함, 장식은 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "왕족 긴 옷 + 망토 - 같은 벽화"
+    },
+    {
+     "what": "신발",
+     "ref": "옷에 가려 보이지 않음 - 단순하게"
+    }
+   ]
   },
   "toghrul": {
    "ko": "토그릴 (옹 칸)",
@@ -517,13 +889,36 @@
    "brow": "#c8c0b2",
    "hat": "fur_peak",
    "hat_color": "#ece2cc",
-   "hat_mark": "#d9a92e",
    "fur": "#8a6a48",
    "trim": "#d9a92e",
    "outfit": "deel",
    "cloth": "#4a5a6a",
    "belt": "#8a5a2b",
-   "pendant": "cross"
+   "pendant": "cross",
+   "era": {
+    "culture": "케레이트 (몽골 고원)",
+    "century": 12
+   },
+   "rank": "king",
+   "body": {
+    "height": 1.01,
+    "build": "heavy",
+    "basis": "기록 없음 - 늙은 칸, 무겁고 느리게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "털 챙 모자(흰색 = 칸의 색) - 『집사』 세밀화의 초원 칸 모자. 케레이트 고유 모자는 근거를 못 찾아 단순하게(장식 없음)"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록 + 네스토리우스파 십자가(내몽골 오르도스 출토 청동 십자가 - 케레이트는 네스토리우스파 기독교)"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게"
+    }
+   ]
   },
   "borte": {
    "ko": "보르테",
@@ -546,7 +941,204 @@
    "outfit": "deel",
    "cloth": "#2e6b5c",
    "belt": "#d9b45a",
-   "cuff": "#d9b45a"
+   "cuff": "#d9b45a",
+   "sex": "f",
+   "era": {
+    "culture": "몽골 (옹기라트 출신)",
+    "century": 12
+   },
+   "rank": "noble",
+   "body": {
+    "height": 0.93,
+    "build": "average",
+    "basis": "기록 없음 - 칸의 정실·조언자, 호엘룬보다 조금 크게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "보크타 - 『원대 제후상』(타이베이 고궁박물원) 차브이 황후 등 원 황후 초상의 고고관. 13세기 초라 깃털·진주는 빼고 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "델(왼섶을 오른쪽 겨드랑이로 여미는 긴 옷) + 허리띠 - 라시드 앗딘 『집사』 세밀화(14세기 초)·카르피니 기록 - 원 황후 초상의 붉은 깃 겉옷"
+    },
+    {
+     "what": "신발",
+     "ref": "몽골 장화(구탈) - 플라노 카르피니 『몽골인의 역사』·루브룩 여행기의 펠트·가죽 장화. 앞코만 살짝 들리고 굽 없음, 장식은 단순하게 (긴 옷에 가려 앞코만)"
+    }
+   ]
+  },
+  "roman_legionary": {
+   "ko": "로마 군단병",
+   "about": "로마 제국 전성기의 보병. 다른 제국과 비교하는 장면(몽골 1편 훅 등)과 로마 시리즈에서 씀",
+   "speakers": [
+    "ROMAN LEGIONARY"
+   ],
+   "names": [
+    "Roman legionary"
+   ],
+   "skin": "#e3b48c",
+   "hair": "#3a2a1e",
+   "hair_style": "short",
+   "eyes": "almond",
+   "mood": "stern",
+   "beard": "none",
+   "hat": "galea",
+   "hat_color": "#a9b0b3",
+   "trim": "#c9a24a",
+   "outfit": "segmentata",
+   "plate": "#9aa2a6",
+   "cloth": "#a8332a",
+   "belt": "#5a3a22",
+   "shield": "scutum",
+   "boots": "#5a3a22",
+   "boot_style": "sandal",
+   "face": "square",
+   "era": {
+    "culture": "로마 제국",
+    "century": 2
+   },
+   "rank": "soldier",
+   "body": {
+    "height": 1.0,
+    "build": "stocky",
+    "basis": "기록 없음 - 훈련된 직업 군인, 다부지게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "임페리얼 갈릭형 갈레아(1~2세기 출토 투구), 붉은 볏은 행진용 - 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "로리카 세그멘타타 + 붉은 튜닉 - 트라야누스 기둥(113) 부조"
+    },
+    {
+     "what": "신발",
+     "ref": "칼리가(징 박은 가죽 샌들) - 트라야누스 기둥 부조·출토품"
+    },
+    {
+     "what": "무기",
+     "ref": "스쿠툼(굽은 직사각 방패) - 두라 에우로포스 출토 방패, 무늬는 단순하게"
+    }
+   ]
+  },
+  "persian_immortal": {
+   "ko": "페르시아 불사부대",
+   "about": "아케메네스 페르시아의 정예 보병. 다른 제국과 비교하는 장면(몽골 1편 훅 등)과 페르시아 시리즈에서 씀",
+   "speakers": [
+    "PERSIAN IMMORTAL"
+   ],
+   "names": [
+    "Persian Immortal"
+   ],
+   "skin": "#c99a70",
+   "hair": "#1a120c",
+   "hair_style": "short",
+   "eyes": "almond",
+   "mood": "stern",
+   "beard": "full",
+   "beard_color": "#1a120c",
+   "hat": "achaemenid_band",
+   "hat_color": "#c9a24a",
+   "trim": "#c9a24a",
+   "outfit": "robe",
+   "cloth": "#3f5f8a",
+   "inner": "#e8d9b0",
+   "belt": "#5a3a22",
+   "back": [
+    "spear",
+    "bow"
+   ],
+   "boots": "#6e4a2c",
+   "boot_style": "plain",
+   "face": "oval",
+   "era": {
+    "culture": "아케메네스 페르시아",
+    "century": -5
+   },
+   "rank": "soldier",
+   "body": {
+    "height": 1.02,
+    "build": "lean",
+    "basis": "기록 없음 - 궁수 겸 창병, 날렵하게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "꼰 머리띠 + 곱슬 머리 - 수사 궁전 유약 벽돌 궁수 행렬(루브르)"
+    },
+    {
+     "what": "옷",
+     "ref": "무늬 있는 긴 옷 - 같은 벽돌 행렬, 무늬는 단순하게"
+    },
+    {
+     "what": "신발",
+     "ref": "가죽 신 - 같은 벽돌 행렬"
+    },
+    {
+     "what": "무기",
+     "ref": "창 + 활·화살통 - 같은 벽돌 행렬(창끝 아래 석류 장식은 생략)"
+    }
+   ]
+  },
+  "yesugei": {
+   "ko": "예수게이",
+   "about": "테무친의 아버지, 키야트 보르지긴 씨족의 족장 '바아투르(용사)'. 아들의 신붓감을 정하고 돌아오다 타타르에게 독살됨(1편 1장)",
+   "speakers": [
+    "YESÜGEI",
+    "YESUGEI"
+   ],
+   "names": [
+    "Yesügei"
+   ],
+   "skin": "#d9a77c",
+   "hair": "#241a12",
+   "hair_style": "braids",
+   "eyes": "narrow",
+   "mood": "calm",
+   "beard": "mustache",
+   "beard_color": "#241a12",
+   "hat": "fur_peak",
+   "hat_color": "#5a3424",
+   "fur": "#6b4a2e",
+   "outfit": "deel",
+   "cloth": "#6a3b2a",
+   "trim": "#c9a24e",
+   "belt": "#8a5a2b",
+   "back": [
+    "bow",
+    "quiver"
+   ],
+   "face": "square",
+   "era": {
+    "culture": "몽골 (보르지긴 씨족)",
+    "century": 12
+   },
+   "rank": "noble",
+   "body": {
+    "height": 1.08,
+    "build": "stocky",
+    "basis": "기록 없음 - '바아투르(용사)'라 불린 족장 전사, 크고 다부지게. 아들(어린 테무친 0.72)과 키 차이가 크게"
+   },
+   "sources": [
+    {
+     "what": "모자",
+     "ref": "초원 귀족 털모자(뾰족 꼭대기 + 털 챙) - 라시드 앗딘 『집사』 세밀화의 몽골 귀족, 단순하게"
+    },
+    {
+     "what": "옷",
+     "ref": "델 + 가죽 띠 - 『몽골비사』 시대 초원 복식, 단순하게"
+    },
+    {
+     "what": "신발",
+     "ref": "구탈(몽골 장화)"
+    },
+    {
+     "what": "무기",
+     "ref": "합성궁·화살통 - 『몽골비사』의 사냥·전투 묘사, 단순하게"
+    }
+   ]
   }
  }
 }

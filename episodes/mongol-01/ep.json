@@ -127,6 +127,7 @@
     ]
    },
    "char": "temujin",
+   "stage": "child",
    "charAt": "right",
    "i18n": {
     "ko": "아이의 이름은 테무친. 아버지 예수게이는 작은 부족의 족장이었습니다.",
@@ -234,6 +235,7 @@
     ]
    },
    "char": "temujin",
+   "stage": "child",
    "charAt": "left",
    "pose": "angry",
    "i18n": {

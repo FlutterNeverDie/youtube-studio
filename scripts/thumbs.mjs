@@ -3,7 +3,7 @@
 //   thumbs.json: { "look": "red", "map": "...", "face": "...", "faceFocus": "50% 25%",
 //                  "variants": [ { "en": {"top": "...", "big": "..."}, "ko": {...}, "es": {...} }, ... ] }  ← 1번이 기본, 2·3번은 "테스트 및 비교"
 //   문구는 번역이 아니라 그 나라 유튜버 말투로 새로 쓴다 (02 현지화). 그림(map·face)은 언어 공통, 변형마다 바꾸고 싶으면 variant에 map·face를 넣는다
-// → out/thumbs/<편>-<번호>-<언어>.png, ~/hwm/<meta.folder>/<이름>_썸네일 <번호> <언어>.png, meta.json의 thumbs(영어)·thumbs_i18n(언어별)
+// → out/thumbs/<편>-<번호>-<언어>.png, ~/ReStory/<meta.folder>/썸네일_<언어>.png (2·3번은 "썸네일_<언어> (테스트 N).png"), meta.json의 thumbs(영어)·thumbs_i18n(언어별)
 // 유튜브: 영어는 업로드 때 API로, 다른 언어는 스튜디오 → 언어 → 그 언어 줄의 썸네일 칸 (다국어 오디오가 있는 채널, 2026)
 import { execFile } from "node:child_process";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
@@ -15,7 +15,7 @@ import { remotion } from "./tools.mjs"; // npx 대신 노드로 (윈도우 npx.c
 
 const run = promisify(execFile);
 const CODE = fileURLToPath(new URL("..", import.meta.url));
-const HOME = process.env.HWM ?? join(homedir(), "hwm");
+const HOME = process.env.HWM ?? join(homedir(), "ReStory");
 const LANG = { en: "영어", ko: "한국어", es: "스페인어" };
 
 const path = process.argv[2];
@@ -32,7 +32,7 @@ for (const [k, v] of spec.variants.entries()) {
     const props = { look: spec.look ?? "red", map: v.map ?? spec.map, face: v.face ?? spec.face, faceFocus: v.faceFocus ?? spec.faceFocus, ...words };
     const out = join(CODE, "out/thumbs", `${ep}-${k + 1}-${lang}.png`);
     await run(...remotion("still", "src/index.ts", "Thumb", out, `--props=${JSON.stringify(props)}`), { cwd: CODE });
-    const rel = join(meta.folder, `${meta.name}_썸네일 ${k + 1} ${LANG[lang]}.png`);
+    const rel = join(meta.folder, k ? `썸네일_${LANG[lang]} (테스트 ${k + 1}).png` : `썸네일_${LANG[lang]}.png`); // 편 폴더 안이라 편 이름은 안 붙임 (2026-10-26 사용자)
     await mkdir(join(HOME, meta.folder), { recursive: true });
     await copyFile(out, join(HOME, rel));
     if (lang === "en") thumbs.push(rel);

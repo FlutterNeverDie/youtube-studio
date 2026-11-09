@@ -1,23 +1,34 @@
 // 인물 캐릭터: audio/characters.py가 만든 겹 SVG(public/chars/<id>/<포즈>/)를 쌓아서 움직인다
-// 포즈: front·side·angry·shocked·sad·happy (장면표 "pose"), 방향: 장면표 "facing": "left"면 좌우 뒤집기
+// 포즈: front·side·angry·shocked·sad·happy·smug (장면표 "pose"), 방향: 장면표 "facing": "left"면 좌우 뒤집기
+// 그림체(2026-10-26): 전신 그림을 600×720 판에 담음. 목·어깨 자리는 audio/characters.py build가 쓰는 char-rig.json
+// 나이·상황별 모습(characters.json stages)은 chars/<id>_<단계>/ - 장면표 "stage" 또는 그 단계의 speakers로 고름 (charKey)
 // 몸은 숨쉬기, 머리는 살짝 흔들림 + 말할 때 끄덕임, 눈은 3~4초마다 깜빡임,
 // 입은 mouth.json이 있으면 그대로 - 발음 입 모양 X·A~H(Rhubarb, 2026-10-21) 또는 예전 크기 0·1·2. 없으면 말하는 동안 비슷하게 흉내
 // 움직임(2026-10-21): 등장 enter(up 아래서 늘었다 줄며 올라옴 · pop 튀어나옴 · none), 퇴장 exit(down · pop, 장면 끝 12프레임),
 //   반응 beat(jump 놀라 펄쩍 · shake 화나 부르르 · hop 기뻐 통통 · sink 슬퍼 가라앉음 · nod 끄덕 - 없으면 포즈 따라 자동),
-//   손짓 gesture(point · fist · open - 아래에서 팔이 올라오고 말하는 동안 살짝 흔들림). 장면표 필드는 docs/guide/03
+//   손짓 gesture(point · fist · open - 그 팔이 어깨를 중심으로 휘둘러 올라오고 말하는 동안 살짝 흔들림). 장면표 필드는 docs/guide/03
 import { useEffect, useState } from "react";
 import { AbsoluteFill, continueRender, delayRender, Easing, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import spec from "../../characters.json";
+import rigs from "./char-rig.json";
 
-type Spec = { speakers?: string[]; names?: string[] };
+type Spec = { speakers?: string[]; names?: string[]; stages?: Record<string, { speakers?: string[] }> };
 const chars = spec.characters as Record<string, Spec>;
+type Rig = { neck: number[]; shoulderR: number[]; shoulderL: number[]; top: number };
+const RIG = rigs as Record<string, Rig>;
 
 export const charForSpeaker = (speaker?: string) =>
   speaker ? Object.keys(chars).find((id) => chars[id].speakers?.some((s) => s.toUpperCase() === speaker.toUpperCase())) : undefined;
 
 export const hasChar = (id?: string) => !!id && id in chars;
-export const POSES = ["front", "side", "angry", "shocked", "sad", "happy"] as const;
-export const POSE_NAME: Record<string, string> = { front: "정면", side: "옆", angry: "화남", shocked: "놀람", sad: "슬픔", happy: "기쁨" };
+// 그림 폴더 이름: 장면표 stage(예: "child")가 있으면 <id>_<단계>, 없으면 그 단계의 speakers(예: YOUNG TEMÜJIN)로, 아니면 <id>
+export const charKey = (id: string, stage?: string, speaker?: string) => {
+  const st = chars[id]?.stages ?? {};
+  const s = stage && stage in st ? stage : Object.keys(st).find((k) => speaker && st[k].speakers?.some((x) => x.toUpperCase() === speaker.toUpperCase()));
+  return s && `${id}_${s}` in RIG ? `${id}_${s}` : id;
+};
+export const POSES = ["front", "side", "angry", "shocked", "sad", "happy", "smug"] as const;
+export const POSE_NAME: Record<string, string> = { front: "정면", side: "옆", angry: "화남", shocked: "놀람", sad: "슬픔", happy: "기쁨", smug: "거만" };
 export const GESTURES = ["point", "fist", "open"] as const;
 export const GESTURE_NAME: Record<string, string> = { point: "가리킴", fist: "주먹", open: "두 손" };
 export type Enter = "up" | "pop" | "none";
@@ -154,24 +165,33 @@ export const Character = ({
   const w = (height * 600) / 720;
   const u = height / 720; // 판 좌표 1 → 화면 px
   const layer = (name: string) => <Img src={staticFile(`chars/${id}/${p}/${name}.svg`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />;
-  // 손짓: 아래에서 팔이 올라옴(살짝 넘쳤다 자리 잡음), 말하는 동안 손이 조금씩 움직임
+  // 목(머리 흔들림 중심)·오른 어깨(손짓 팔 중심) - 판(600×720) 비율
+  const rig = RIG[id] ?? { neck: [300, 416], shoulderR: [369, 438], shoulderL: [231, 438], top: 180 };
+  const at = (pt: number[]) => `${(pt[0] / 600) * 100}% ${(pt[1] / 720) * 100}%`;
+  // 손짓: 그 팔을 뺀 몸 겹(body_<손짓>) + 손짓 팔 겹. 팔이 아래에서 어깨를 중심으로 휘둘러 올라옴(살짝 넘쳤다 자리 잡음), 말하는 동안 조금씩 움직임
   const g = gesture && (GESTURES as readonly string[]).includes(gesture) ? gesture : null;
   const gp = g ? spring({ frame: f - (gestureAt ?? delay + 6), fps, config: { damping: 11, stiffness: 140 } }) : 0;
+  const gOn = !!g && gp > 0.01;
   const talkMove = talking ? Math.sin(f / 7 + seed) * 1.4 : 0;
   const sx = (1 - stretch * 0.6) * bt.sx;
   const sy = (1 + stretch) * bt.sy;
   return (
     <div style={{ position: "relative", width: w, height, transform: flip ? "scaleX(-1)" : undefined }}>
       <AbsoluteFill style={{ transform: `translate(${bt.x * u}px, ${y + bt.y * u}px) rotate(${rot}deg) scale(${sc * sx}, ${sc * sy})`, transformOrigin: "50% 100%" }}>
-        <AbsoluteFill style={{ transform: `scaleY(${1 + breathe * 0.012})`, transformOrigin: "50% 100%" }}>{layer("body")}</AbsoluteFill>
-        <AbsoluteFill style={{ transform: `translateY(${(breathe * -3 + nod + bt.hy) * u}px) rotate(${sway + bt.hr}deg)`, transformOrigin: "50% 62%" }}>
+        <AbsoluteFill style={{ transform: `scaleY(${1 + breathe * 0.012})`, transformOrigin: "50% 100%" }}>
+          {layer(gOn ? `body_${g}` : "body")}
+          {gOn && (
+            // 오른팔(point·fist)은 아래로 늘어진 데서 어깨를 돌아 올라오고, 두 손(open)은 몸 가운데에서 벌어짐
+            <AbsoluteFill style={g === "open" ? { transform: `scaleX(${0.55 + 0.45 * gp}) rotate(${talkMove * 0.5}deg)`, transformOrigin: at(rig.neck) } : { transform: `rotate(${(1 - gp) * (g === "fist" ? 150 : 80) + talkMove}deg)`, transformOrigin: at(rig.shoulderR) }}>
+              {layer(`arm_${g}`)}
+            </AbsoluteFill>
+          )}
+        </AbsoluteFill>
+        <AbsoluteFill style={{ transform: `translateY(${(breathe * -3 + nod + bt.hy) * u}px) rotate(${sway + bt.hr}deg)`, transformOrigin: at(rig.neck) }}>
           {layer("head")}
           {layer(blink ? "eyes1" : "eyes0")}
           {layer(`mouth${m}`)}
         </AbsoluteFill>
-        {g && gp > 0.01 && (
-          <AbsoluteFill style={{ transform: `translateY(${((1 - gp) * 320 + breathe * -2) * u}px) rotate(${(1 - gp) * -14 + talkMove}deg)`, transformOrigin: g === "open" ? "50% 100%" : "72% 100%" }}>{layer(`arm_${g}`)}</AbsoluteFill>
-        )}
       </AbsoluteFill>
     </div>
   );

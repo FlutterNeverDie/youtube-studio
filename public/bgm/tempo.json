@@ -1,0 +1,66 @@
+{
+ "main": {
+  "bpm": 92,
+  "first": 0.0
+ },
+ "battle": {
+  "bpm": 138,
+  "first": 0.0
+ },
+ "tension": {
+  "bpm": 72,
+  "first": 0.0
+ },
+ "lament": {
+  "bpm": 64,
+  "first": 0.03
+ },
+ "triumph": {
+  "bpm": 100,
+  "first": 0.0
+ },
+ "steppe": {
+  "bpm": 72,
+  "first": 0.0
+ },
+ "intrigue": {
+  "bpm": 96,
+  "first": 0.0
+ },
+ "march": {
+  "bpm": 104,
+  "first": 0.0
+ },
+ "chase": {
+  "bpm": 150,
+  "first": 0.06
+ },
+ "siege": {
+  "bpm": 60,
+  "first": 0.0
+ },
+ "discovery": {
+  "bpm": 84,
+  "first": 0.0
+ },
+ "hook": {
+  "bpm": 120,
+  "first": 0.0
+ },
+ "outro": {
+  "bpm": 66,
+  "first": 0.01
+ },
+ "aftermath": {
+  "bpm": 63,
+  "first": 0.0
+ },
+ "ending": {
+  "bpm": 96,
+  "first": 0.0
+ },
+ "mountain": {
+  "bpm": 120,
+  "first": 0.03
+ }
+}
