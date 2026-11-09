@@ -30,3 +30,17 @@
 - `tú`/`usted` 섞임, 스페인식 `vosotros`
 - 성·수 일치 (los mongoles / la horda)
 - 문장이 영어보다 길어짐 - 스페인어는 보통 영어보다 15~25% 김. 영어 길이를 넘지 않게 줄인다 (장면 길이 = 가장 긴 언어)
+
+## AI 티 · 번역투 (사람이 판단)
+기계 규칙(경고)이 잡는 것: AI 상투구(cabe destacar·un testimonio de·sin lugar a dudas), 어림말 겹침, 글말(no obstante·mediante·restantes), "Paso uno:"·"Una:" 번호 매기기, calco(eventualmente·tenían historia), la fuerza principal, caballos extra, ser + 분사 + por, 쉼표로 이은 -ando 사슬, 문장 첫 Pero 남발, 몸 부위 su, 설명란 "13th c."·동명사 챕터 제목. 아래는 규칙이 못 잡으니 읽고 판단한다
+- 영어 동사를 그대로: take·hold·make → tomar·tener·volver. "tomó a los clanes… y los unió" → "logró unir a los clanes", "tenía el norte de China" → "dominaba", "eso vuelve a alguien tu enemigo" → "eso los convertía en enemigos", "atacaron todo a la vez" → "atacaron por todos lados a la vez"
+- 명사만 떼어 놓은 강조 조각("Los Jin." "Xia Occidental." "A su propia gente.")은 한 편에 두세 번까지. 나머지는 콜론이나 한 문장으로 ("…su futuro enemigo: los Jin.")
+- 같은 말로 다시 풀기("una ruta que unía pozos…, una ruta que nadie vigilaba") - 영어 동격 반복. 한 번만 쓰고 "y"로 잇기. 같은 틀 문장 두 개 연달아도 같은 문제
+- his/their를 매번 su로: 누구 것인지 흐려짐 ("Su comandante… Su ejército quedó deshecho"). 분명하면 el·la, 헷갈리면 이름
+- 영어 This was 시작("Este era un Estado muy poderoso") → 주어를 말하기 ("Los Jin eran…")
+- 놀라운 숫자를 밋밋하게 말하지 않기: "Otrar resistió cinco meses" → "Otrar aguantó nada menos que cinco meses". 작게 보일 땐 apenas·ni siquiera·solo con. 어림말(unos·casi)은 한 대목에 한 번
+- 영어식 쉼표 + y ("Se giró hacia el sur, y escupió") - 주어가 같으면 쉼표 빼기
+- 관사·목적어 빠짐: "era fin del invierno" → "era el final del invierno", "el pueblo abrió sin pelear" → "abrió sus puertas"
+- 낱말: masivo(massive) → enorme, "el número" → "la ventaja numérica", "crecían a caballo" → "se criaban a caballo", "de práctica" → "de prueba"
+- 마지막 줄에 첫 문장 되풀이 요약("Así cayó Corasmia, el imperio islámico…")은 AI 티 - 바로 다음 이야기로
+- 설명란: "Así se preparó: A, B, C y D"처럼 콜론 + 명사 나열은 AI 요약 티 - 질문이나 한 장면으로 시작. 출처 책 제목도 스페인어판 (Historia secreta de los mongoles)

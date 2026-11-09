@@ -116,6 +116,98 @@
    "pattern": "\\b(?![IVXL]+\\b)[A-ZÁÉÍÓÚÑ]{2,}\\b",
    "msg": "대문자 줄임말 - TTS가 철자로 읽음",
    "bad": ["La ONU no existía."], "good": ["Las Naciones Unidas no existían."]
+  },
+  {
+   "id": "es-ai-phrase", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:cabe (?:destacar|mencionar|señalar|resaltar|recordar)|es importante (?:destacar|mencionar|señalar|resaltar|recordar|notar)|vale la pena (?:destacar|mencionar|señalar|resaltar)|sin lugar a dudas?|sin duda alguna|(?:es|fue|era|son|fueron|eran) (?:un |el )?(?:verdadero |claro |vivo )?testimonio de|(?:el|un|este|ese) (?:rico |vasto |complejo )?tapiz de|adentrémonos|sumerjámonos|embarquémonos|un viaje fascinante|(?:dejó|dejaron|deja|dejan) una huella imborrable|(?:marcó|marcaron|marca) un antes y un después|(?:desempeñó|desempeñaron|desempeña|jugó|jugaron|juega) un papel (?:crucial|fundamental|clave|vital|esencial)|en el vasto (?:mundo|panorama|universo)|en conclusión)\\b", "flags": "i",
+   "map": {"sin lugar a dudas": "sin duda", "sin lugar a duda": "sin duda", "sin duda alguna": "sin duda"},
+   "msg": "AI 글 상투구 (cabe destacar · un testimonio de · sin lugar a dudas · un papel crucial) - 유튜버는 이렇게 말 안 함. 빼고 사실을 바로 말하기",
+   "bad": ["Cabe destacar que los mongoles no tenían flota.", "La muralla es un testimonio de su poder.", "Sin lugar a dudas, fue la mayor conquista.", "Jebe jugó un papel crucial."], "good": ["Los mongoles no tenían flota.", "Juvaini dejó un testimonio de la caída de Bujará.", "Sin duda, fue la mayor conquista.", "Vale la pena recordarlo."],
+   "fixes": [["Sin lugar a dudas, fue la mayor conquista.", "Sin duda, fue la mayor conquista."]]
+  },
+  {
+   "id": "es-hedge-stack", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:aproximadamente|alrededor de|cerca de|casi|más o menos|unos|unas|poco más de|algo más de)\\s+(?:aproximadamente|alrededor de|cerca de|unos|unas|más o menos|casi)(?=\\s+(?:\\d|un\\b|una\\b|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte|treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa|cien|mil\\b|doscient|trescient|cuatrocient|quinient|seiscient|setecient|ochocient|novecient))|\\b(?:unos|unas|alrededor de|cerca de|casi)\\s+[\\d.]+(?:\\s+\\w+){0,2}\\s+(?:aproximadamente|más o menos)\\b", "flags": "i",
+   "msg": "어림말 겹침 (alrededor de unos · unos 150.000 ... aproximadamente) - 영어 about을 매번 옮긴 것. 숫자는 한 번만 어림 (unos 20.000)",
+   "bad": ["Llegaron alrededor de unos 20.000 jinetes.", "Eran unos 150.000 soldados aproximadamente.", "Había casi unos mil hombres."], "good": ["Llegaron unos 20.000 jinetes.", "Acamparon cerca de unos pozos.", "Eran casi 150.000 soldados.", "Apenas unos días después, cayó."]
+  },
+  {
+   "id": "es-written", "group": "문어체", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:asimismo|no obstante|posteriormente|por consiguiente|mediante|a fin de|con el fin de|aproximadamente|(?:el|la|los|las) cual(?:es)?|cuy[oa]s?|(?:en|de|a|por|con|para|desde|hacia|sobre|tras|ante) dich[oa]s?(?=\\s+\\w)|restantes)\\b", "flags": "i",
+   "map": {"asimismo": "también", "no obstante": "pero", "posteriormente": "después", "por consiguiente": "así que", "mediante": "con", "a fin de": "para", "con el fin de": "para", "aproximadamente": "unos", "restantes": "que quedaban"},
+   "msg": "글말(문어체) - 내레이션은 말로 (no obstante → pero, posteriormente → después, mediante → con, los soldados restantes → los soldados que quedaban, aproximadamente → unos)",
+   "bad": ["No obstante, la ciudad resistió.", "Los soldados restantes se refugiaron allí.", "Cruzaron el río mediante balsas.", "Llegaron a Otrar, cuyas murallas eran altas.", "En dicha ciudad no quedó nadie."], "good": ["Pero la ciudad resistió.", "Los soldados que quedaban se refugiaron allí.", "Cruzaron el río en balsas.", "Gengis lo había dicho antes.", "Lo cual nadie esperaba."],
+   "fixes": [["Posteriormente volvieron al norte.", "Después volvieron al norte."], ["Tenía aproximadamente 150.000 soldados.", "Tenía unos 150.000 soldados."]]
+  },
+  {
+   "id": "es-step-enum", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?:^|(?<=[.!?…:]\\s)|(?<=/\\s))(?:Paso (?:uno|dos|tres|cuatro|cinco|[1-5])\\b|(?:Uno|Una|Dos|Tres|Cuatro|Cinco)(?=\\s*:))",
+   "map": {"Paso uno": "Primer paso", "Paso 1": "Primer paso", "Paso dos": "Segundo paso", "Paso 2": "Segundo paso", "Paso tres": "Tercer paso", "Paso 3": "Tercer paso", "Paso cuatro": "Cuarto paso", "Paso 4": "Cuarto paso", "Paso cinco": "Quinto paso", "Paso 5": "Quinto paso", "Una": "La primera", "Uno": "Primero"},
+   "msg": "영어식 번호 매기기 (Step one: · One: · Two:) - 스페인어 말로는 서수 (Primer paso: · La primera: · Primero, ... Después, ...)",
+   "bad": ["Paso uno: conseguir un guía.", "Y les dio dos razones. Una: los Jin habían apoyado a los tártaros."], "good": ["Primer paso: conseguir un guía.", "La primera: los Jin habían apoyado a los tártaros.", "Uno de ellos huyó.", "Dos días después, cayó."],
+   "fixes": [["Paso uno: conseguir un guía.", "Primer paso: conseguir un guía."]]
+  },
+  {
+   "id": "es-calco", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:(?:ya )?(?:tenían|tienen) historia(?! de)|eventualmente|realiz(?:ó|aron|a|an) que|(?:tomar|tomó|tomaron|toma|toman) ventaja de|(?:es|era) tiempo de(?= \\w+(?:ar|er|ir)\\b)|(?:hacer|hizo|hace|hacen|hicieron) la diferencia)\\b", "flags": "i",
+   "map": {"tenían historia": "tenían cuentas pendientes", "ya tenían historia": "ya tenían cuentas pendientes", "tienen historia": "tienen cuentas pendientes", "ya tienen historia": "ya tienen cuentas pendientes", "eventualmente": "al final", "realizó que": "se dio cuenta de que", "realizaron que": "se dieron cuenta de que", "realiza que": "se da cuenta de que", "realizan que": "se dan cuenta de que", "tomar ventaja de": "aprovechar", "tomó ventaja de": "aprovechó", "tomaron ventaja de": "aprovecharon", "toma ventaja de": "aprovecha", "toman ventaja de": "aprovechan", "es tiempo de": "es hora de", "era tiempo de": "era hora de", "hacer la diferencia": "marcar la diferencia", "hizo la diferencia": "marcó la diferencia", "hace la diferencia": "marca la diferencia", "hacen la diferencia": "marcan la diferencia", "hicieron la diferencia": "marcaron la diferencia"},
+   "msg": "영어 낱말을 그대로 옮긴 직역(calco) - eventually → al final, realize → darse cuenta, take advantage → aprovechar, had history → tenían cuentas pendientes",
+   "bad": ["Eventualmente, la ciudad cayó.", "Gengis realizó que lo engañaban.", "Es que estos dos tenían historia.", "Tomaron ventaja de la noche.", "Era tiempo de atacar."], "good": ["Al final, la ciudad cayó.", "Gengis se dio cuenta de que lo engañaban.", "Es que estos dos tenían cuentas pendientes.", "Aprovecharon la noche.", "Realizó un ataque.", "Era tiempo de cosecha.", "Las dos ciudades tenían historia de siglos."],
+   "fixes": [["Eventualmente, la ciudad cayó.", "Al final, la ciudad cayó."], ["Tomaron ventaja de la noche.", "Aprovecharon la noche."]]
+  },
+  {
+   "id": "es-grueso", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:la|su) fuerza principal(?: mongola)?\\b", "flags": "i",
+   "map": {"la fuerza principal": "el grueso del ejército", "su fuerza principal": "el grueso de su ejército", "la fuerza principal mongola": "el grueso del ejército mongol"},
+   "msg": "'main force' 직역 - 스페인어 군사 관용은 el grueso (del ejército)",
+   "bad": ["Su fuerza principal fue a la frontera.", "La fuerza principal mongola se reagrupó."], "good": ["El grueso de su ejército fue a la frontera.", "Su fuerza era la caballería."],
+   "fixes": [["La fuerza principal mongola se reagrupó.", "El grueso del ejército mongol se reagrupó."]]
+  },
+  {
+   "id": "es-extra", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(caballos|monturas|hombres|soldados|flechas|armas|raciones|provisiones)\\s+extras?\\b", "flags": "i",
+   "suggest": ["\\1 de repuesto"],
+   "msg": "'extra horses' 직역 - de repuesto (말은 caballos de refresco도 관용)",
+   "bad": ["Cada soldado llevaba varios caballos extra."], "good": ["Cada soldado llevaba varios caballos de repuesto.", "Trabajaron horas extra."],
+   "fixes": [["Cada soldado llevaba varios caballos extra.", "Cada soldado llevaba varios caballos de repuesto."]]
+  },
+  {
+   "id": "es-passive-por", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:es|son|era|eran|fue|fueron|será|serán|sería|serían|sido)\\s+(?:\\w+mente\\s+|muy\\s+|casi\\s+)?(?!(?:nada|cada|vida|ida|salida|comida|medida|partida|herida|bebida|llegada|entrada|mirada|jornada|armada|espada|morada|cruzada|emboscada|nado|lado|grado|estado|soldado|pasado|mercado|ganado|legado|reinado|enviado|aliado|cuñado|prado|senado|conocido|conocida|conocidos|conocidas|reconocido|reconocida)\\b)\\w+(?:ado|ada|ados|adas|ido|ida|idos|idas)\\s+por\\b", "flags": "i",
+   "msg": "ser + 과거분사 + por (영어 'was taken by') - 말로는 능동 (Los mongoles tomaron la ciudad) 또는 se 구문",
+   "bad": ["Bujará fue rodeada por los mongoles.", "El sah había sido traicionado por sus generales."], "good": ["Los mongoles rodearon Bujará.", "Era conocido por su crueldad.", "Fue a Kiev por el río.", "Un hombre enviado por los Jin llegó."]
+  },
+  {
+   "id": "es-gerund-chain", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?!(?:cuando|mando|bando|comando|contrabando|nefando|ando|fernando|orlando|rolando|entiendo|atiendo|enciendo|defiendo|desciendo|asciendo|extiendo|estruendo|remiendo)\\b)\\w+(?:ando|iendo|yendo)\\b[^.!?…;:]*?,[^.!?…;:]*?\\b(?!(?:cuando|mando|bando|comando|contrabando|nefando|ando|fernando|orlando|rolando|entiendo|atiendo|enciendo|defiendo|desciendo|asciendo|extiendo|estruendo|remiendo)\\b)\\w+(?:ando|iendo|yendo)\\b", "flags": "i",
+   "msg": "쉼표로 이어진 -ando/-iendo 사슬 (영어 -ing 분사구 직역) - 문장을 나누거나 'y + 과거형'으로",
+   "bad": ["Cruzaron el desierto siguiendo los pozos, evitando las ciudades.", "Pero comiendo y durmiendo en la misma tienda, peleando contra el mismo enemigo, todo cambia."], "good": ["Cruzaron el desierto. Seguían los pozos y evitaban las ciudades.", "Cuando llegaron, siguió peleando.", "Fernando llegó cuando nadie miraba.", "Llevaban años dividiendo y acosando a las tribus."]
+  },
+  {
+   "id": "es-pero-start", "group": "AI 티", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere", "overuse": 8,
+   "pattern": "(?:^|(?<=[.!?…]\\s)|(?<=/\\s))Pero\\b",
+   "msg": "문장 첫머리 Pero가 편에 많음 (영어 But을 매번 옮김) - 앞 문장에 ', pero'로 붙이거나 Aun así · El problema es que · Lo que no sabían es que · En cambio",
+   "bad": ["Pero los mongoles sabían cómo cruzarlo."], "good": ["Los mongoles, en cambio, sabían cómo cruzarlo.", "Era fuerte, pero lento."]
+  },
+  {
+   "id": "es-body-possessive", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:levantó|levantaron|levantaba|levantaban|levanta|levantan|alzó|alzaron|alzaba|alza|bajó|bajaron|bajaba|abrió|abrieron|abre|abren|cerró|cerraron|cierra|cierran|giró|giraron|gira|giran|movió|movieron|mueve|mueven|sacudió|sacudieron|sacude|tendió|tendieron|extendió|extendieron|frunció|cruzó|cruzaron|apretó|apretaron)\\s+(?:su|sus)\\s+(?:mano|manos|brazo|brazos|cabeza|ojos|boca|puño|puños|ceño|pie|pies|dedo|dedos|cara|rostro)\\b", "flags": "i",
+   "msg": "몸 부위에 소유격 su (영어 'raised his hand') - 스페인어는 정관사 (levantó la mano, abrió los ojos)",
+   "bad": ["Gengis levantó su mano.", "Abrió sus ojos."], "good": ["Gengis levantó la mano.", "Bajo sus pies había agua.", "Abrieron sus puertas."]
+  },
+  {
+   "id": "es-en-century", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b\\d{1,2}(?:st|nd|rd|th)\\s+(?:c\\.|century)", "flags": "i",
+   "map": {"1st c.": "siglo I", "1st century": "siglo I", "2nd c.": "siglo II", "2nd century": "siglo II", "3rd c.": "siglo III", "3rd century": "siglo III", "4th c.": "siglo IV", "4th century": "siglo IV", "5th c.": "siglo V", "5th century": "siglo V", "6th c.": "siglo VI", "6th century": "siglo VI", "7th c.": "siglo VII", "7th century": "siglo VII", "8th c.": "siglo VIII", "8th century": "siglo VIII", "9th c.": "siglo IX", "9th century": "siglo IX", "10th c.": "siglo X", "10th century": "siglo X", "11th c.": "siglo XI", "11th century": "siglo XI", "12th c.": "siglo XII", "12th century": "siglo XII", "13th c.": "siglo XIII", "13th century": "siglo XIII", "14th c.": "siglo XIV", "14th century": "siglo XIV", "15th c.": "siglo XV", "15th century": "siglo XV", "16th c.": "siglo XVI", "16th century": "siglo XVI", "17th c.": "siglo XVII", "17th century": "siglo XVII", "18th c.": "siglo XVIII", "18th century": "siglo XVIII", "19th c.": "siglo XIX", "19th century": "siglo XIX", "20th c.": "siglo XX", "20th century": "siglo XX", "21st c.": "siglo XXI", "21st century": "siglo XXI"},
+   "msg": "영어 세기 표기 (13th c.) - 스페인어는 siglo XIII (설명란 출처 줄도. 책 제목도 스페인어판 제목으로)",
+   "bad": ["Rashid al-Din, Jami' al-tawarikh (14th c.)"], "good": ["Rashid al-Din, Jami' al-tawarikh (siglo XIV)"],
+   "fixes": [["Rashid al-Din, Jami' al-tawarikh (14th c.)", "Rashid al-Din, Jami' al-tawarikh (siglo XIV)"]]
+  },
+  {
+   "id": "es-gerund-title", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?m)^\\d{1,2}:\\d{2}(?::\\d{2})?\\s+(?!Cuando\\b)[A-ZÁÉÍÓÚ]\\w*(?:ando|iendo|yendo)\\b",
+   "msg": "설명란 챕터 제목이 -ando/-iendo로 시작 (영어 'Crossing the...') - 명사로 (El cruce del desierto)",
+   "bad": ["0:00 Intro\n2:56 Cruzando el desierto de Kyzylkum"], "good": ["2:56 El cruce del desierto de Kyzylkum", "0:00 Cuando cayó Bujará"]
   }
  ]
 }

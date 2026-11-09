@@ -201,7 +201,27 @@ def check_es_pairs(text):
     return sorted(out)
 
 
-CHECKS = {"es_pairs": check_es_pairs}
+def check_ko_noun_tail(text):
+    """앞 문장 뒤에 서술어 없이 명사만 떼어 놓은 조각 ("…처음 씁니다. 동맹." · "…바로 숫자 10. 그리고") - 영어식 강조라 한국어에선 번역투 (2026-10-26 사용자)"""
+    hits = []
+    pos = 0
+    sents = []
+    for s in re.split(r"(?<=[.!?])\s+", text):  # 말줄임표(…) 뒤에 이어지면 한 박자 쉼이지 문장 끝이 아님
+        i = text.find(s, pos)
+        sents.append((i, s))
+        pos = i + len(s)
+    for k, (i, s) in enumerate(sents):
+        core = re.sub(r"[\s\"'”“’‘)\]]+$", "", s).rstrip(".…!? ")
+        if k == 0 or not core or s.rstrip().endswith("?"):
+            continue
+        if re.search(r"(다|요|까|죠|라|자|오|네|군|지|게)$", core):  # 서술어로 끝남
+            continue
+        if len(core) <= 16:
+            hits.append((i, i + len(s), None))
+    return hits
+
+
+CHECKS = {"es_pairs": check_es_pairs, "ko_noun_tail": check_ko_noun_tail}
 
 # ---------- 규칙 불러오기 ----------
 _cache = {}
@@ -232,8 +252,8 @@ def covered(text, at, keys):
     return False
 
 
-END = re.compile(r"[\"'”’»)\]\s]*(?:[.!?…。]|\Z)")
-CLAUSE = re.compile(r"[\"'”’»)\]]*\s*(?:[,;:.!?…。]|\Z)")
+END = re.compile(r"[\"'”’»)\]\s]*(?:[.!?…。।]|\Z)")  # । = 힌디어 마침표 (2026-11-09)
+CLAUSE = re.compile(r"[\"'”’»)\]]*\s*(?:[,;:.!?…。।]|\Z)")
 
 
 def in_scope(rule, scope):
@@ -283,7 +303,7 @@ def lint(text, lang, scope, data, *, show_type=None, allow=()):
 
 
 def sentences(text):
-    return [s for s in re.split(r"(?<=[.!?…])\s+", text or "") if s.strip()]
+    return [s for s in re.split(r"(?<=[.!?…।])\s+", text or "") if s.strip()]
 
 
 def register_of(sentence, data):

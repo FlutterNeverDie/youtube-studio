@@ -1,0 +1,195 @@
+{
+ "_설명": "인도네시아어 대사 규칙 (id.md를 기계가 잡을 수 있게). AI 티·번역투는 아직 전부 warn (2026-11-09, 결과 보고 올릴지 정함). scripts/check-text.py가 씀. 고치면 python3 scripts/check-text.py --selftest",
+ "lang": "id",
+ "registers": {
+  "_설명": "인물 대사의 2인칭 - 한 인물이 Anda(공손)와 kau/kamu(반말)를 섞지 않는지(장면 사이). 내레이션은 시청자에게 kalian",
+  "narration": "kalian",
+  "speaker_level": "warn",
+  "classes": {
+   "Anda": {"pattern": "\\bAnda\\b", "examples": ["Apakah Anda utusan kaisar?", "Tuan, Anda harus pergi."]},
+   "kau": {"pattern": "\\b(?:kau|kamu|engkau|kaulah|kamulah|padamu|untukmu|denganmu|milikmu|kepadamu)\\b", "flags": "i", "examples": ["Kau pikir aku takut?", "Siapa kamu?"]}
+  }
+ },
+ "rules": [
+  {
+   "id": "id-ai-stock", "group": "AI 상투어", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:perlu (?:dicatat|diingat|diketahui)(?: bahwa)?|(?:tidak|tak) (?:dapat|bisa) dipungkiri(?: bahwa)?|sebagai kesimpulan|pada dasarnya|faktanya|dalam rangka(?: untuk)?|adalah merupakan)\\b", "flags": "i",
+   "msg": "AI·글말 상투어 (\"Perlu dicatat bahwa\" = \"It is worth noting that\") - 유튜버는 이렇게 말하지 않음, 빼거나 \"Yang menarik,\"·\"Ingat,\"처럼 말로",
+   "bad": ["Perlu dicatat bahwa Jin sangat kuat.", "Tidak dapat dipungkiri, Mongol menang.", "Faktanya, Xia lemah.", "Ini adalah merupakan benteng terbesar."],
+   "good": ["Ingat, Jin itu kuat sekali.", "Mongol memang menang.", "Fakta ini jarang dibahas."]
+  },
+  {
+   "id": "id-formal-connector", "group": "AI 상투어", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:oleh karena itu|oleh sebab itu|dengan demikian|namun demikian|meskipun demikian|akan tetapi|selain itu|dikarenakan|namun)\\b", "flags": "i",
+   "map": {"oleh karena itu": "makanya", "oleh sebab itu": "makanya", "dengan demikian": "jadi", "namun demikian": "tapi", "meskipun demikian": "meski begitu", "akan tetapi": "tapi", "selain itu": "lagi pula", "dikarenakan": "karena", "namun": "tapi"},
+   "msg": "글말 접속어 - 말로 하는 내레이션은 \"Tapi\"·\"Makanya\"·\"Lagi pula\" (Oleh karena itu → Makanya)",
+   "bad": ["Oleh karena itu, Jenghis menyerang Xia.", "Namun, Jin menolak.", "Selain itu, Syah tak percaya jenderalnya."],
+   "good": ["Makanya, Jenghis menyerang Xia.", "Tapi Jin menolak.", "Lagi pula, Syah tak percaya jenderalnya."],
+   "fixes": [["Oleh karena itu, Jenghis menyerang Xia.", "Makanya, Jenghis menyerang Xia."], ["Namun, Jin menolak.", "Tapi, Jin menolak."]]
+  },
+  {
+   "id": "id-tersebut", "group": "AI 상투어", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere", "overuse": 2,
+   "pattern": "\\btersebut\\b", "flags": "i",
+   "suggest": ["itu"],
+   "msg": "\"tersebut\"(앞서 말한)가 편에 많음 - 글말·번역투, 말로는 \"itu\"",
+   "bad": ["Kota tersebut jatuh dalam sehari."], "good": ["Kota itu jatuh dalam sehari."],
+   "fixes": [["Kota tersebut jatuh dalam sehari.", "Kota itu jatuh dalam sehari."]]
+  },
+  {
+   "id": "id-merupakan", "group": "AI 상투어", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere", "overuse": 1,
+   "pattern": "\\bmerupakan\\b", "flags": "i",
+   "msg": "\"merupakan\"(~이다, 글말)가 편에 많음 - 빼거나 \"itu\"·\"adalah\"·\"-lah\"로 (Otrar merupakan kota perbatasan → Otrar itu kota perbatasan)",
+   "bad": ["Otrar merupakan kota perbatasan."], "good": ["Otrar itu kota perbatasan.", "Otrar, kota di perbatasan."]
+  },
+  {
+   "id": "id-relative-where", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?<=\\w)(?:,\\s*|\\s+)(?:di ?mana|yang mana)\\s+(?!(?:saja|pun|lagi)\\b)(?=\\w)(?=[^.!?]*(?:[.!…]|$))", "flags": "i",
+   "except": ["di mana-mana", "dimana-mana"],
+   "msg": "관계사 \"di mana\"·\"yang mana\" = 영어 where·which 직역 - \"tempat\"·\"yang\"·문장 끊기로 (kota di mana dia lahir → kota tempat dia lahir)",
+   "bad": ["Mereka tiba di Otrar, di mana pasukan Syah menunggu.", "Itu kota dimana dia lahir.", "Dia membangun benteng, yang mana belum selesai."],
+   "good": ["Mereka tiba di Otrar. Di sana pasukan Syah sudah menunggu.", "Musuh tak tahu mereka di mana.", "Mongol menyerang di mana-mana sekaligus.", "Lalu pasukannya ada di mana sekarang?"]
+  },
+  {
+   "id": "id-di-oleh", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bdi(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,}\\s+oleh\\b", "flags": "i",
+   "msg": "di- 수동 + \"oleh\"(영어 by 그대로) - 행위자를 주어로 능동, 또는 oleh 빼기 (Ketapel ini digerakkan oleh orang → Ketapel ini ditarik tenaga orang)",
+   "bad": ["Ketapel ini digerakkan oleh orang-orang yang menarik tali.", "Kota itu dihancurkan oleh Mongol."],
+   "good": ["Ketapel ini ditarik tenaga orang.", "Mongol menghancurkan kota itu.", "Kota itu dihancurkan Mongol."]
+  },
+  {
+   "id": "id-passive-front", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?:^|(?<=[.!?…/]\\s))Di(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,}\\b[^.!?,]*,",
+   "msg": "문장 앞에 di- 분사구 + 쉼표 (영어 \"Blamed for ..., the emperor\") - \"Karena dianggap ...,\" 또는 주어 먼저 (Sang kaisar dianggap gagal, lalu digulingkan)",
+   "bad": ["Disalahkan karena gagal menahan Mongol, / sang kaisar digulingkan.", "Ditinggal pasukannya, Syah kabur ke barat."],
+   "good": ["Karena dianggap gagal menahan Mongol, sang kaisar digulingkan.", "Dia menghadap ke selatan, dan meludah.", "Di Zhongxing, ibu kota Xia, mereka mencoba hal nekat.", "Dinasti Jin, musuh lama Mongol."]
+  },
+  {
+   "id": "id-adj-front", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "(?:^|(?<=[.!?…/]\\s))(?:Panik|Putus asa|Marah|Murka|Takut|Ketakutan|Kaget|Terkejut|Bingung|Lelah|Kelelahan|Kelaparan|Terdesak|Geram|Cemas|Kecewa|Curiga|Malu),",
+   "map": {"Panik,": "Karena panik,", "Putus asa,": "Karena putus asa,", "Marah,": "Karena marah,", "Murka,": "Karena murka,", "Takut,": "Karena takut,", "Ketakutan,": "Karena ketakutan,", "Kaget,": "Karena kaget,", "Terkejut,": "Karena terkejut,", "Bingung,": "Karena bingung,", "Lelah,": "Karena lelah,", "Kelelahan,": "Karena kelelahan,", "Kelaparan,": "Karena kelaparan,", "Terdesak,": "Karena terdesak,", "Geram,": "Karena geram,", "Cemas,": "Karena cemas,", "Kecewa,": "Karena kecewa,", "Curiga,": "Karena curiga,", "Malu,": "Karena malu,"},
+   "msg": "감정 형용사 한 낱말 + 쉼표로 시작 (영어 \"Desperate, Xia begged\") - \"Karena putus asa,\" 또는 \"Xia yang putus asa pun ...\"",
+   "bad": ["Putus asa, Xia memohon bantuan Jin.", "Panik, pasukan kota mencoba kabur."],
+   "good": ["Karena putus asa, Xia memohon bantuan Jin.", "Pasukan kota panik, lalu mencoba kabur.", "Jenghis tak percaya. Dia murka."],
+   "fixes": [["Putus asa, Xia memohon bantuan Jin.", "Karena putus asa, Xia memohon bantuan Jin."]]
+  },
+  {
+   "id": "id-appositive-di", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b([A-Z][\\w-]*(?: [A-Z][\\w-]*)*),\\s*(?:/+\\s*)?(di(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,})\\b",
+   "except": ["\\b(?:Lalu|Tapi|Jadi|Kini|Akhirnya|Kemudian|Sejak itu|Saat itu|Sebelumnya|Awalnya|Dan|Begitu|Sementara|Padahal),"],
+   "suggest": ["\\1, yang \\2"],
+   "msg": "이름 + 쉼표 + di- 분사 (영어 \"The Jin, founded by ...\" 그대로) - \"yang\"을 넣거나 \"Ada Jin, negara bangsa Jurchen.\"처럼 다시",
+   "bad": ["Jin, didirikan bangsa Jurchen.", "Liao Barat, didirikan kerabat raja yang lolos."],
+   "good": ["Jin, yang didirikan bangsa Jurchen.", "Lalu, dibawa ke ibu kota.", "Di Zhongxing, ibu kota Xia, mereka menunggu."],
+   "fixes": [["Jin, didirikan bangsa Jurchen.", "Jin, yang didirikan bangsa Jurchen."]]
+  },
+  {
+   "id": "id-ordinal", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:Langkah|Tahap|Alasan|Cara) (?:satu|dua|tiga|empat|lima)\\b|(?:^|(?<=[.!?…/]\\s))(?:Satu|Dua|Tiga|Empat|Lima):",
+   "map": {"Langkah satu": "Langkah pertama", "Langkah dua": "Langkah kedua", "Langkah tiga": "Langkah ketiga", "Langkah empat": "Langkah keempat", "Langkah lima": "Langkah kelima",
+           "Tahap satu": "Tahap pertama", "Tahap dua": "Tahap kedua", "Tahap tiga": "Tahap ketiga", "Tahap empat": "Tahap keempat", "Tahap lima": "Tahap kelima",
+           "Alasan satu": "Alasan pertama", "Alasan dua": "Alasan kedua", "Alasan tiga": "Alasan ketiga", "Alasan empat": "Alasan keempat", "Alasan lima": "Alasan kelima",
+           "Cara satu": "Cara pertama", "Cara dua": "Cara kedua", "Cara tiga": "Cara ketiga", "Cara empat": "Cara keempat", "Cara lima": "Cara kelima",
+           "Satu:": "Pertama,", "Dua:": "Kedua,", "Tiga:": "Ketiga,", "Empat:": "Keempat,", "Lima:": "Kelima,"},
+   "msg": "영어 \"Step one:\"·\"One: ... Two: ...\" 그대로 - 서수로 (Langkah pertama, Pertama, ... Kedua, ...)",
+   "bad": ["Langkah satu: cari pemandu.", "Satu: Jin pernah mendukung Tatar."],
+   "good": ["Langkah pertama: cari pemandu.", "Pertama, Jin pernah mendukung Tatar.", "Pasukan mereka dibagi empat.", "Berlanjut di bagian 2."],
+   "fixes": [["Langkah satu: cari pemandu.", "Langkah pertama: cari pemandu."], ["Satu: Jin pernah mendukung Tatar.", "Pertama, Jin pernah mendukung Tatar."]]
+  },
+  {
+   "id": "id-question-comma", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:bagaimana|gimana|kenapa|mengapa)\\s*,\\s*(?:/+\\s*)?(?=\\w)", "flags": "i",
+   "msg": "의문사 바로 뒤 쉼표·쉼 (영어 \"So how, / did ...\"의 끊김 그대로) - 의문사와 문장을 붙여 읽기 (Lalu, bagaimana Jenghis Khan bersiap melawan Jin?)",
+   "bad": ["Jadi bagaimana, / Jenghis Khan bersiap perang melawan Jin?", "Kenapa, Jin begitu takut?"],
+   "good": ["Lalu, bagaimana Jenghis Khan bersiap melawan Jin?", "Jadi, bagaimana Mongol / menumbangkan Khwarazmia?", "Bagaimana?"]
+  },
+  {
+   "id": "id-country-now", "group": "뜻 뒤집힘", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b((?:Tiongkok|Iran|Irak|Rusia|Uzbekistan|Kazakhstan|Turkmenistan|Afganistan|Mongolia|Turki|Suriah|Ukraina|Polandia|Hungaria|India|Pakistan|Korea|Vietnam|Eropa|Georgia|Azerbaijan|Armenia)(?: (?:utara|selatan|barat|timur|tengah|barat laut|timur laut))?) (?:sekarang|hari ini|saat ini)\\b",
+   "suggest": ["\\1 masa kini", "wilayah yang kini jadi \\1"],
+   "msg": "\"Iran sekarang\" = 영어 \"today's Iran\" 직역 - 인니어로는 \"지금(now)\"으로 읽혀 뜻이 흐려짐 → \"Iran masa kini\"·\"wilayah yang kini jadi Iran\"",
+   "bad": ["Kekaisaran Jin menguasai Tiongkok utara sekarang.", "dari Uzbekistan sampai Iran sekarang.", "dari Uzbekistan sampai Iran hari ini."],
+   "good": ["Kekaisaran Jin menguasai wilayah yang kini jadi Tiongkok utara.", "dari Uzbekistan sampai Iran masa kini.", "Sekarang Iran punya ibu kota baru."]
+  },
+  {
+   "id": "id-invasion-subject", "group": "뜻 뒤집힘", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:invasi|serbuan|serangan|penyerbuan) (?:Dinasti Jin|Jin|Xia Barat|Xia|Song|Liao|Tangut|Khwarazmia|Khwarazm|Rusia|Eropa|Georgia|Hungaria|Polandia|Goryeo|Bukhara|Samarkand|Otrar|Baghdad)\\b", "flags": "i",
+   "except": ["\\b(?:invasi|serbuan|serangan|penyerbuan) (?:Dinasti )?\\w+(?: Barat)? (?:ke|terhadap|atas|melawan)\\b"],
+   "msg": "\"Invasi Jin\" = Jin이 침공한 것으로 읽힘 (2026-10 실제 실수: 몽골의 금 침공) - 침공당한 쪽이면 \"Invasi Mongol ke Jin\"",
+   "bad": ["Invasi Jin, bagian 1.", "Serbuan Khwarazmia dimulai tahun 1219."],
+   "good": ["Invasi Mongol ke Jin, bagian 1.", "Serangan Jin ke Song gagal.", "Invasi Mongol ke Dinasti Jin."]
+  },
+  {
+   "id": "id-series-number", "group": "뜻 뒤집힘", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(Invasi|Kekaisaran|Penaklukan|Seri) (\\w+) (\\d{1,2})(?=\\s*[.,!?…/]|\\s*$)",
+   "suggest": ["\\1 \\2, bagian \\3"],
+   "msg": "시리즈 이름 뒤 맨 숫자 (\"Invasi Mongol 1\") - TTS가 \"satu\"로 읽어 뜻이 없음, \"bagian 1\"",
+   "bad": ["Invasi Mongol 1. / Yuk."], "good": ["Invasi Mongol ke Jin, bagian 1.", "Kekaisaran Mongol, bagian 2.", "Tahun 1219."],
+   "fixes": [["Invasi Mongol 1. / Yuk.", "Invasi Mongol, bagian 1. / Yuk."]]
+  },
+  {
+   "id": "id-hedge-stack", "group": "얼버무림", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:sekitar|kira-kira|kurang lebih|hampir|nyaris|kurang-lebih)\\b(?=[^.!?]*\\b(?:sekitar|kira-kira|kurang lebih|hampir|nyaris|-an)\\b)|\\b(?:sekitar|kira-kira|kurang lebih|hampir) \\d[\\d.]*-an\\b", "flags": "i",
+   "except": ["\\b(?:di|ke|dari) sekitar\\b", "\\bsekitarnya\\b"],
+   "msg": "얼버무림 겹침 (sekitar·kira-kira·hampir·nyaris 둘 이상, \"sekitar 150.000-an\") - 영어 about/almost를 매번 옮긴 티, 숫자는 한 번 딱 말하기",
+   "bad": ["Pasukannya kira-kira sekitar 150.000 orang.", "Hampir semua kota, sekitar dua puluh, menyerah.", "Ada sekitar 150.000-an tentara."],
+   "good": ["Xia masih punya sekitar 150.000 tentara.", "Desa-desa di sekitar benteng dibakar, dan hampir semua penduduk kabur.", "Membangun kekaisaran nyaris mustahil."]
+  },
+  {
+   "id": "id-sempurna", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bsempurna\\b", "flags": "i",
+   "except": ["\\b(?:tidak|tak|belum|kurang|nyaris|hampir) sempurna\\b"],
+   "msg": "\"sempurna\" = 영어 perfect 옮긴 말일 때가 많음 (\"the perfect practice ground\") - \"yang pas\"·\"cocok\"·\"ampuh\"·\"ideal\"",
+   "bad": ["Xia jadi ajang latihan sempurna sebelum Jin.", "Tembok itu pertahanan sempurna melawan kavaleri."],
+   "good": ["Xia jadi tempat latihan yang pas sebelum Jin.", "Tembok itu ampuh menahan kavaleri.", "Rencananya belum sempurna."]
+  },
+  {
+   "id": "id-mati-natural", "group": "말투", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bmati(\\s+(?:tanpa|karena sakit|karena tua|dalam tidur|di usia|pada usia|tahun|di tahun|mendadak|tiba-tiba))\\b", "flags": "i",
+   "suggest": ["meninggal\\1", "wafat\\1"],
+   "msg": "사람(특히 왕)이 병·노환으로 죽을 때 \"mati\"는 짐승에 쓰는 거친 말 - \"meninggal\"·\"wafat\" (싸움에서 죽으면 \"tewas\")",
+   "bad": ["Lalu Zhangzong mati tanpa pewaris.", "Sang Syah mati karena sakit di sebuah pulau."],
+   "good": ["Lalu Zhangzong wafat tanpa pewaris.", "Sang pangeran ingin Jenghis mati.", "Ribuan prajurit tewas."],
+   "fixes": [["Lalu Zhangzong mati tanpa pewaris.", "Lalu Zhangzong meninggal tanpa pewaris."]]
+  },
+  {
+   "id": "id-settled-state", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:negara|kerajaan|kekaisaran|kota)(?: [a-z]+)? yang menetap\\b", "flags": "i",
+   "msg": "\"negara yang menetap\" = 영어 settled state 직역 (나라가 '머문다'는 뜻이 됨) - \"negara agraris\"·\"bangsa yang hidup menetap\"·\"negara petani\"",
+   "bad": ["Dia belum pernah melawan negara yang menetap.", "Dia menoleh ke kerajaan lain yang menetap di Jalur Sutra."],
+   "good": ["Dia belum pernah melawan negara agraris.", "Dagangnya dengan bangsa petani yang hidup menetap.", "Bangsa nomaden tak pernah menetap."]
+  },
+  {
+   "id": "id-idiom-calque", "group": "영어 직역", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\bpunya sejarah(?=\\s*[.,!?…/]|\\s*$)|\\bmengambil tempat(?= (?:di|pada)\\b)|\\bdi akhir hari\\b|\\bmengamankan punggung(?:nya)?\\b", "flags": "i",
+   "map": {"punya sejarah": "punya dendam lama", "mengambil tempat": "berlangsung", "di akhir hari": "pada akhirnya", "mengamankan punggungnya": "mengamankan sisi belakangnya", "mengamankan punggung": "mengamankan sisi belakang"},
+   "msg": "영어 관용구 직역 (\"These two had history\"·\"took place\"·\"at the end of the day\"·\"secure his back\") - 인니어 뜻이 다르거나 어색함",
+   "bad": ["Dua orang ini punya sejarah.", "Pertempuran itu mengambil tempat di Yehuling.", "Jenghis harus mengamankan punggungnya."],
+   "good": ["Dua orang ini punya dendam lama.", "Kota ini punya sejarah panjang.", "Dia mengambil tempat duduk.", "Pertempuran itu berlangsung di Yehuling."],
+   "fixes": [["Dua orang ini punya sejarah.", "Dua orang ini punya dendam lama."]]
+  },
+  {
+   "id": "id-anda-narr", "group": "kalian/Anda", "kind": "style", "level": "warn", "scope": "narration", "position": "anywhere",
+   "pattern": "\\bAnda\\b",
+   "except": ["[\"“][^\"”]*\\bAnda\\b"],
+   "msg": "내레이션이 시청자에게 \"Anda\" (글말·광고 말투) - 채널은 \"kalian\" (한 사람에게는 \"kau\")",
+   "bad": ["Bayangkan Anda berdiri di depan tembok itu."], "good": ["Bayangkan kalian berdiri di depan tembok itu.", "Utusan itu berkata, \"Anda harus berlutut.\""]
+  },
+  {
+   "id": "id-malay", "group": "말레이어", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:kerana|sahaja|bilangan|sebarang|kerajaan negeri)\\b", "flags": "i",
+   "map": {"kerana": "karena", "sahaja": "saja", "bilangan": "jumlah", "sebarang": "sembarang", "kerajaan negeri": "pemerintah daerah"},
+   "msg": "말레이시아어 낱말 - 표준 인도네시아어로 (kerana → karena)",
+   "bad": ["Kerana itu Jin takut."], "good": ["Karena itu Jin takut."],
+   "fixes": [["Kerana itu Jin takut.", "Karena itu Jin takut."]]
+  },
+  {
+   "id": "id-cina", "group": "이름", "kind": "style", "level": "warn", "scope": "all", "position": "anywhere",
+   "pattern": "\\b(?:Cina|China)\\b",
+   "except": ["Laut (?:Cina|China) Selatan"],
+   "map": {"Cina": "Tiongkok", "China": "Tiongkok"},
+   "msg": "나라·땅 이름은 \"Tiongkok\" (\"Cina\"는 2014년부터 공식에서 안 씀, 사람은 \"Tionghoa\")",
+   "bad": ["Jin menguasai Cina utara."], "good": ["Jin menguasai Tiongkok utara.", "Laut Cina Selatan."],
+   "fixes": [["Jin menguasai Cina utara.", "Jin menguasai Tiongkok utara."]]
+  }
+ ]
+}
