@@ -9,7 +9,7 @@ audio/.tts-cache/
 audio/.cast-raw/
 audio/.ep-raw/
 audio/.bgm/
-# 렌더 결과·큰 중간물 (산출물은 ~/hwm에, 목소리는 다시 만들 수 있음)
+# 렌더 결과·큰 중간물 (산출물은 ~/ReStory에, 목소리는 다시 만들 수 있음)
 out/
 public/ep/
 public/demo/
@@ -30,12 +30,6 @@ public/bgm/*.wav
 audio/.depth/
 # 효과음 원본 녹음(Kenney·OpenGameArt·NPS·Wikimedia Commons - CC0·퍼블릭 도메인·CC BY, 크다, setup.sh가 받음). 가공본은 public/sfx/ep
 audio/sfx-src/
-# 시네마틱 지형 캐시 (blender/prep_terrain.py가 만듦 - data/geo/ 아래라 위 줄로 이미 빠짐: terrarium 조각·굽기 결과)
-data/geo/terrarium/
-data/geo/cinematic/
-# 시네마틱 근경 고도(Copernicus GLO-30 조각)·하늘 HDRI(Poly Haven CC0 원본) - blender/prep_terrain.py·prep_sky.py가 받음
-data/geo/copdem30/
-data/geo/hdri/
 # 예고편 재료: 목소리 원본(다듬기 전)·시네마틱 영상(3D 보류, 84MB·61MB - GitHub 50MB 경고)은 로컬에만
 public/teaser*/**/*.raw.wav
 public/teaser*/*.mp4

@@ -1,7 +1,7 @@
 #!/bin/bash
 # 새 맥에서 한 번: 도구 설치 → 패키지 → 파이썬 → 악기 소리 모음 → 열쇠 확인 (윈도우는 setup.cmd → setup.ps1, 같은 순서)
 # 공장 초기 맥이면: 터미널에서 xcode-select --install (git) → git clone → ./setup.sh (Homebrew·Chrome·Rosetta까지 여기서 설치, 중간에 맥 암호를 물어봄)
-# 저장소는 어디에 둬도 된다 (이 맥: ~/Documents/GitHub/RMW). 산출물은 ~/hwm/영상 등으로 복사됨 (HWM 환경 변수로 바꿀 수 있음)
+# 저장소는 어디에 둬도 된다 (이 맥: ~/Documents/GitHub/youtube-studio). 산출물은 ~/ReStory/영상 등으로 복사됨 (HWM 환경 변수로 바꿀 수 있음)
 set -e
 cd "$(dirname "$0")"
 # 개발자 도구(git·컴파일러) - 없으면 설치 창을 띄우고 끝날 때까지 기다림
@@ -40,18 +40,15 @@ if [ ! -x ~/src/sfizz/build/library/bin/sfizz_render ]; then
   cmake --build ~/src/sfizz/build -j8 --target sfizz_render
 fi
 [ -f audio/sf/MuseScore_General.sf2 ] || curl -fL -o audio/sf/MuseScore_General.sf2 https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/MuseScore_General.sf2
-mkdir -p "${HWM:-$HOME/hwm}"/{영상,쇼츠,배너,홍보,브금,tts}
+mkdir -p "${HWM:-$HOME/ReStory}"/{영상,쇼츠,배너,홍보,브금,tts}
 echo
 for f in client_secret.json token.json tts_key.txt gemini_key.txt; do
   [ -f "secrets/$f" ] && echo "열쇠 있음: secrets/$f" || echo "열쇠 없음: secrets/$f  ← AirDrop으로 받은 파일을 넣고 chmod 600"
 done
 # 채널 브금 14곡 렌더 (git에 안 올림)
 ls public/bgm/*.wav >/dev/null 2>&1 || .venv/bin/python -I audio/make_bgm.py
-# 시네마틱 장면(실제 지형 위 비행, blender/render_shot.py) - Blender (무료, GPL)
-[ -d /Applications/Blender.app ] || brew install --cask blender
 # 효과음 원본 녹음 (Kenney·OpenGameArt·NPS·Wikimedia Commons - CC0·퍼블릭 도메인·CC BY, 약 600MB, git 제외) - audio/make_sfx.py
 # 가공본 public/sfx/ep/*.wav 는 git에 있음. 원본은 소리를 다시 만들 때만 필요 (.venv/bin/python -I audio/make_sfx.py)
 .venv/bin/python -I audio/make_sfx.py fetch
-# 시네마틱 근경 고도(Copernicus GLO-30)·하늘 HDRI(Poly Haven CC0)는 처음 렌더 때 blender/가 받아 data/geo/에 둔다 (로그인 없음)
 echo "지도 캡처가 필요하면 사이트 저장소(chronomap)를 받아 'npx next dev' 후 SITE=http://localhost:3000 으로 scripts/clean.mjs 실행"
 echo "준비 끝 - docs/guide/ 부터 읽기"

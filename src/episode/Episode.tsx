@@ -2,7 +2,7 @@
 // 장면 종류는 episodes/<편>/*.json 머리말 참고. 화면은 장면마다 계속 움직인다(채널 규칙 8)
 import { AbsoluteFill, Audio, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import { EndCardArt, TitleCard } from "./Cards";
-import { Beat, Character, charForSpeaker, Enter, Exit, hasChar, useMouth } from "./Character";
+import { Beat, Character, charForSpeaker, charKey, Enter, Exit, hasChar, useMouth } from "./Character";
 
 const SERIF = "Baskerville, 'Big Caslon', 'Hoefler Text', serif";
 const SANS = "-apple-system, 'Helvetica Neue', Arial, sans-serif";
@@ -22,8 +22,6 @@ type Show =
   | { type: "lapse"; set: string; years: number[] }
   // 사이트 장면 층으로 찍은 기울인 지도 + 부대 애니메이션 (scripts/map-scene.mjs → public/<dir>/00000.jpg…). dir은 voice_episode.py가 채운다
   | { type: "mapscene"; scene: string; dir?: string }
-  // Blender 시네마틱(실제 지형 위를 날아가는 장면): blender/shots/<shot>.json → scripts/scene-frames.py가 찍음. dir은 voice_episode.py가 채운다
-  | { type: "cinematic"; shot: string; dir?: string }
   // 장 카드 (2026-10-21 글자 없는 판): 시리즈 상징 + 연도(year) 또는 편 번호(part → 로마 숫자) + 시리즈 지도. 예전 title·sub 낱말은 그리지 않고 숫자만 뽑아 씀
   | { type: "title"; title?: string; sub?: string; seconds: number; year?: number | string; part?: number; years?: string; series?: string; focus?: V3 }
   | { type: "stamp"; text: string }
@@ -31,7 +29,7 @@ type Show =
   | { type: "units" }
   // 최종 화면: 낱말 없이 아이콘만. nextPart(다음 편 번호)가 없으면 예전 next 글에서 "Part 3" 숫자만 뽑음
   | { type: "endcard"; seconds: number; next?: string; nextPart?: number; series?: string };
-export type Scene = { role?: string; speaker?: string; text?: string; vo: string | null; vo_i18n?: Record<string, string>; frames: number; show: Show; music?: string; sfx?: string | null; char?: string; pose?: string; facing?: "left" | "right"; charAt?: "left" | "center" | "right"; gesture?: string; gestureAt?: number; enter?: Enter; exit?: Exit; beat?: Beat; beatAt?: number; cues?: Cue[]; hold?: number; dur?: Record<string, number>; i18n?: Record<string, string> };
+export type Scene = { role?: string; speaker?: string; text?: string; vo: string | null; vo_i18n?: Record<string, string>; frames: number; show: Show; music?: string; sfx?: string | null; char?: string; stage?: string; pose?: string; facing?: "left" | "right"; charAt?: "left" | "center" | "right"; gesture?: string; gestureAt?: number; enter?: Enter; exit?: Exit; beat?: Beat; beatAt?: number; cues?: Cue[]; hold?: number; dur?: Record<string, number>; i18n?: Record<string, string> };
 // 장면 안 원하는 시점에 넣는 소리 (편집기에서 끌어다 놓음). src = public 아래 경로, at = 장면 시작부터 초, vol = 0~1
 export type Cue = { src: string; at: number; vol?: number };
 export type Timeline = { fps: number; bgm?: string; langs?: string[]; scenes: Scene[] };
@@ -268,9 +266,10 @@ const Line = ({ sc, frames, vo }: { sc: Scene; frames: number; vo?: string | nul
       {hasChar(char) ? (
         <>
           {/* 인물이 아래에서 올라와 말한다(등장·반응·손짓은 Character) + 오른쪽에 소리 막대 */}
-          <div style={{ position: "absolute", left: 230, bottom: 0 }}>
-            <div style={{ position: "absolute", left: "8%", right: "8%", bottom: 40, height: 120, borderRadius: "50%", background: "radial-gradient(rgba(233,201,127,0.35), transparent 70%)", opacity: p }} />
-            <Character id={char!} talking={talking} mouth={mouth} height={760} pose={sc.pose} flip={sc.facing === "left"} {...motion(sc)} />
+          {/* 전신 그림(2026-10-26): 판 높이 980 - 발이 화면 아래 가까이 */}
+          <div style={{ position: "absolute", left: 150, bottom: -10 }}>
+            <div style={{ position: "absolute", left: "12%", right: "12%", bottom: 10, height: 110, borderRadius: "50%", background: "radial-gradient(rgba(233,201,127,0.35), transparent 70%)", opacity: p }} />
+            <Character id={charKey(char!, sc.stage, sc.speaker)} talking={talking} mouth={mouth} height={980} pose={sc.pose} flip={sc.facing === "left"} {...motion(sc)} />
           </div>
           <div style={{ position: "absolute", left: 1000, right: 80, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", opacity: p, transform: `translateX(${(1 - p) * 40}px)` }}>
             <div style={{ fontFamily: SERIF, fontSize: 150, lineHeight: 0.6, color: "rgba(226,85,58,0.5)" }}>“</div>
@@ -300,12 +299,12 @@ const motion = (sc: Scene) => ({
 
 // 지도·그림 장면에 인물을 세운다 (장면표 char: "<id>"). 아래에서 올라와(기본 enter "up") 숨쉬고 깜빡인다
 const CharOverlay = ({ sc, flip, at = "right" }: { sc: Scene; flip?: boolean; at?: "left" | "center" | "right" }) => {
-  const h = 620;
+  const h = 700; // 전신 그림이라 상반신 때(620)보다 조금 크게
   const w = (h * 600) / 720;
   const x = at === "left" ? 90 : at === "center" ? (1920 - w) / 2 : 1920 - w - 90;
   return (
     <div style={{ position: "absolute", left: x, bottom: 0, width: w, height: h, filter: "drop-shadow(0 18px 30px rgba(0,0,0,0.55))" }}>
-      <Character id={sc.char!} height={h} pose={sc.pose} flip={flip} delay={4} {...motion(sc)} />
+      <Character id={charKey(sc.char!, sc.stage, sc.speaker)} height={h} pose={sc.pose} flip={flip} delay={4} {...motion(sc)} />
     </div>
   );
 };
@@ -362,7 +361,6 @@ const ShotOnly = ({ sc, vo }: { sc: Scene; vo?: string | null }) => {
   if (s.type === "art") return <ArtShot s={s} frames={sc.frames} />;
   if (s.type === "cutout") return <Cutout s={s} frames={sc.frames} />;
   if (s.type === "mapscene") return <MapScene s={s} />;
-  if (s.type === "cinematic") return <FrameSeq dir={s.dir} />;
   if (s.type === "lapse") return <Lapse s={s} frames={sc.frames} />;
   if (s.type === "title") return <Title s={s} frames={sc.frames} />;
   if (s.type === "stamp") return <Stamp s={s} />;
@@ -379,7 +377,6 @@ export const SFX: Record<string, [string, number]> = {
   map: ["swish", 0.1],
   cutout: ["swish", 0.1],
   mapscene: ["swish", 0.1],
-  cinematic: ["swish", 0.1],
   art: ["swish", 0.1],
   lapse: ["swish", 0.12],
   title: ["boom", 0.55],
@@ -387,7 +384,7 @@ export const SFX: Record<string, [string, number]> = {
   line: ["hit", 0.4],
   units: ["drum", 0.45],
 };
-const MOVE = new Set(["map", "art", "lapse", "cutout", "mapscene", "cinematic"]);
+const MOVE = new Set(["map", "art", "lapse", "cutout", "mapscene"]);
 
 // 장면마다 실제로 낼 효과음 [이름, 크기] 또는 null
 export const sceneSfx = (scenes: Scene[], _fps?: number) => {

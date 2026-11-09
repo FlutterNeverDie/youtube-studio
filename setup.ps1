@@ -108,7 +108,7 @@ if ($BuildSfizz) {  # 빌드한 것을 쓰게 (scripts/tools.*가 SFIZZ_RENDER�
 if (-not (Test-Path audio\sf\MuseScore_General.sf2)) {
   Get-File 'https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/MuseScore_General.sf2' audio\sf\MuseScore_General.sf2
 }
-$HWM = if ($env:HWM) { $env:HWM } else { Join-Path $HOME 'hwm' }
+$HWM = if ($env:HWM) { $env:HWM } else { Join-Path $HOME 'ReStory' }
 foreach ($d in '영상', '쇼츠', '배너', '홍보', '브금', 'tts') { New-Item -ItemType Directory -Force (Join-Path $HWM $d) | Out-Null }
 Write-Host ''
 foreach ($f in 'client_secret.json', 'token.json', 'tts_key.txt', 'gemini_key.txt') {
@@ -116,11 +116,8 @@ foreach ($f in 'client_secret.json', 'token.json', 'tts_key.txt', 'gemini_key.tx
 }
 # 채널 브금 14곡 렌더 (git에 안 올림)
 if (-not (Get-ChildItem public\bgm\*.wav -ErrorAction SilentlyContinue)) { Run $VPY @('-I', 'audio/make_bgm.py') }
-# 시네마틱 장면(실제 지형 위 비행, blender/render_shot.py) - Blender (무료, GPL)
-Need 'BlenderFoundation.Blender' { Test-Path "$env:ProgramFiles\Blender Foundation\Blender*\blender.exe" }
 # 효과음 원본 녹음 (CC0·퍼블릭 도메인·CC BY, 약 600MB, git 제외) - audio/make_sfx.py
 Run $VPY @('-I', 'audio/make_sfx.py', 'fetch')
-# 시네마틱 근경 고도·하늘 HDRI는 처음 렌더 때 blender/가 받아 data/geo/에 둔다
 Write-Host ''
 Write-Host '찾은 도구 위치 (없음이 있으면 docs/guide/03 윈도우 참고):'
 Run node @('scripts/tools.mjs')

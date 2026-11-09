@@ -22,9 +22,11 @@ RANKS = {"king", "noble", "general", "soldier", "commoner", "cleric", "captive",
 BUILDS = {"slim", "average", "stocky", "heavy"}
 # 문화권마다 쓰면 안 되는 차림 (설계 칸 값 기준) - 새 문화권을 다룰 때 여기에 더한다
 ANACHRONISM = {
-    "몽골": {"hat": {"crown", "georgian_crown", "rus_helmet", "turban", "turban_helmet"}},
-    "루스": {"hat": {"fur", "boqta", "turban", "turban_helmet", "georgian_crown"}},
-    "호라즘": {"hat": {"crown", "rus_helmet", "boqta", "georgian_crown"}},
+    "몽골": {"hat": {"crown", "crown_cap", "georgian_crown", "rus_helmet", "turban", "turban_helmet"}},
+    "루스": {"hat": {"fur", "khan", "boqta", "turban", "turban_helmet", "georgian_crown"}},
+    "호라즘": {"hat": {"crown", "khan", "rus_helmet", "boqta", "georgian_crown"}},
+    "쿠만": {"hat": {"crown", "crown_cap", "khan", "rus_helmet", "georgian_crown", "turban"}},  # 2026-10-26
+    "조지아": {"hat": {"fur", "khan", "boqta", "helmet", "rus_helmet", "turban", "cuman"}},
 }
 
 ctx = Ctx()

@@ -3,7 +3,7 @@
 # 유튜브 영상은 받지 않는다 - 참고 영상은 Claude가 보고·읽은 내용을 적고, 프레임은 우리 렌더에서만 뽑는다
 #
 #   python3 scripts/compare.py ours   episodes/mongol-03/ep.json            우리 쪽 수치 (길이·화면 바뀜 평균 초·첫 30초 장면) - compare.json "ours"에 옮겨 적기
-#   python3 scripts/compare.py report episodes/mongol-03/ep.json            ~/hwm/<meta.folder>/<이름>_비교 검토.html (렌더 있으면 같은 시각 프레임 포함)
+#   python3 scripts/compare.py report episodes/mongol-03/ep.json            ~/ReStory/<meta.folder>/<이름>_비교 검토.html (렌더 있으면 같은 시각 프레임 포함)
 #   python3 scripts/compare.py stamp  episodes/mongol-03/ep.json script|render   검사 통과하면 지금 대본·렌더 지문을 compare.json에
 #   python3 scripts/compare.py gate   episodes/mongol-03/ep.json script|render   통과 못 하면 exit 1 (pipeline.py가 부름)
 import base64
@@ -20,7 +20,7 @@ CODE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(CODE / "scripts"))
 import tools  # noqa: E402 - 외부 프로그램 위치 (맥·윈도우)
 
-HOME = Path(os.environ.get("HWM", Path.home() / "hwm"))
+HOME = Path(os.environ.get("HWM", Path.home() / "ReStory"))
 AXES = [("hook", "훅 (첫 5초·30초)"), ("clarity", "알아듣기 쉬움"), ("pacing", "리듬 (화면 바뀜)"), ("visuals", "화면"),
         ("sound", "소리 (브금·효과음·목소리)"), ("emotion", "감정·몰입"), ("accuracy", "정확성")]
 RATES = {"better": "우리가 나음", "equal": "같음", "worse": "우리가 못함"}

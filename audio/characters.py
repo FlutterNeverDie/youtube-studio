@@ -1,527 +1,645 @@
 # 인물 캐릭터: characters.json(Claude가 편마다 설계) → 겹 SVG → 영상에서 숨쉬기·깜빡임·입 움직임
 #   python3 audio/characters.py list episodes/mongol-03/ep.json   이 편에 필요한 인물과 아직 설계가 없는 인물
-#   python3 audio/characters.py build [id...]                     public/chars/<id>/<포즈>/{body,head,eyes0,eyes1,mouth0,mouth1,mouth2}.svg
-#                                                                 포즈: front·side·angry·shocked·sad·happy (POSES)
+#   python3 audio/characters.py build [id...]                     public/chars/<id>/<포즈>/ 겹 SVG + src/episode/char-rig.json
+#   python3 audio/characters.py sheet <png> [id...]               확인용 한 장 (헤드리스 Chrome)
 #   .venv/bin/python -I audio/characters.py mouth episodes/mongol-03/ep.json
-#                                                                 목소리 크기 → 프레임별 입 모양(0·1·2) public/ep/<편>/ep/mouth.json
-# 겹은 모두 같은 600×720 판. 머리 겹(head·eyes·mouth)은 영상에서 같이 흔들리고 몸은 숨쉬기만 한다
-# 그림체: 먹선(#2b1d14) + 옛 지도 색(바랜 물감) + 큰 머리. 설계 칸은 characters.json 맨 위 _설명 참고
-# 2026-10-21 그림체 개편(사용자 시안 A): 손으로 그은 듯 흔들리는 먹선, 종이 질감, 지도 톤으로 바랜 색, 2단 그림자
+#                                                                 목소리 → 프레임별 입 모양 public/ep/<편>/ep/mouth.json
+# 그림체 (2026-10-26 사용자 OK, 시안 ~/ReStory/시안/새 그림체 시안 (2026-10-26)/):
+#   OverSimplified식 전신 - 둥근 얼굴·점 눈·굵은 눈썹으로 표정이 크게 읽히고, 투구·갑옷·무기 소품은 자세히.
+#   먹선(#2b1d14) + 바랜 색 + 종이 질감. 인물마다 키(body.height)·덩치(body.build)가 다름
+# 판: 그림 좌표 600×900(발바닥 y=880)을 겹 파일 600×720에 0.8배로 담는다(viewBox -75 0 750 900).
+#   겹 크기는 예전 상반신 판과 같아서 편집기·지도 얼굴 메달(사이트 sceneFace.ts, 600×720 고정)이 그대로 읽는다
+# 겹: body(몸·다리·평소 팔) · head(머리·모자·눈썹·턱수염) · eyes0/eyes1(뜬 눈/감은 눈) · mouth<X·A~H>(발음 입 모양 9개 + 콧수염)
+#   · mouth0~2(예전 크기 방식) · arm_<손짓>(손짓하는 팔) · body_<손짓>(그 팔을 뺀 몸). 머리 겹은 영상에서 같이 흔들리고 몸은 숨쉬기
+#   목·어깨 자리(영상에서 머리 흔들림·팔 휘두름 중심)는 build가 src/episode/char-rig.json에 적는다
+# stages(같은 인물의 나이·상황별 모습)는 public/chars/<id>_<단계>/로 따로 그린다 (장면표 stage 또는 단계의 speakers)
 import json
+import math
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SPEC = ROOT / "characters.json"
 OUT = ROOT / "public/chars"
+RIG = ROOT / "src/episode/char-rig.json"
 INK = "#2b1d14"
-W, H = 600, 720
-HX, HY = 300, 285  # 얼굴 가운데
+W, H = 600, 720  # 겹 파일 크기
+GROUND = 880  # 그림 좌표 발바닥
+VB = (-75, 0, 750, 900)  # 그림 좌표 → 겹 파일 (0.8배)
+BK = W / VB[2]
+
+
+def board(x, y):
+    """그림 좌표 → 겹 파일(600×720) 좌표"""
+    return (x - VB[0]) * BK, (y - VB[1]) * BK
+
+
+def shade(c, k):
+    """k<1 어둡게, k>1 밝게"""
+    r, g, b = (int(c.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
+    f = (lambda v: int(v * k)) if k < 1 else (lambda v: int(v + (255 - v) * (k - 1)))
+    return "#" + "".join(f"{max(0, min(255, f(v))):02x}" for v in (r, g, b))
 
 
 # 겹마다 같은 필터(같은 seed)라 머리·눈·입 겹의 선 흔들림이 서로 맞는다
 LOOK = (
-    # 먹선을 손으로 그은 것처럼 살짝 흔들기
     '<filter id="ink" x="-5%" y="-5%" width="110%" height="110%">'
-    '<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n"/>'
-    '<feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>'
-    # 종이 질감(그림 안쪽에만) + 지도 톤으로 바랜 색(채도 낮추고 따뜻하게)
-    '<filter id="paper" x="0" y="0" width="100%" height="100%">'
+    '<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3" result="n"/>'
+    '<feDisplacementMap in="SourceGraphic" in2="n" scale="3"/></filter>'
+    '<filter id="paper" x="-15%" y="-10%" width="130%" height="120%">'
     '<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="7" result="t"/>'
-    '<feColorMatrix in="t" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.33  0 0 0 0 0.2  0 0 0 0.5 0" result="tc"/>'
+    '<feColorMatrix in="t" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.33  0 0 0 0 0.2  0 0 0 0.4 0" result="tc"/>'
     '<feComposite in="tc" in2="SourceAlpha" operator="in" result="tx"/>'
     '<feBlend in="SourceGraphic" in2="tx" mode="multiply" result="m"/>'
-    '<feColorMatrix in="m" type="matrix" values="0.86 0.12 0.02 0 0.02  0.06 0.88 0.06 0 0.01  0.04 0.1 0.8 0 0  0 0 0 1 0"/></filter>'
+    '<feColorMatrix in="m" type="matrix" values="0.88 0.1 0.02 0 0.02  0.05 0.9 0.05 0 0.01  0.04 0.08 0.84 0 0  0 0 0 1 0"/></filter>'
 )
 
 
-def svg(body, defs=""):
+def patterns(c):
+    """인물 색으로 만든 무늬: lam 미늘(세로로 긴 쇠·가죽 조각을 끈으로 엮은 줄) · mail 사슬 · fur 털 · furw 흰 털"""
+    pl = c["plates"]
+    lace = c.get("lace", "#8a3b2c")
+    fur = c.get("fur", "#7a5638")
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">'
-        f"<defs>{LOOK}{defs}</defs>"
+        f'<pattern id="lam" width="16" height="25" patternUnits="userSpaceOnUse">'
+        f'<rect width="16" height="25" fill="{shade(pl, 0.7)}"/><rect x="1.5" y="1" width="13" height="21" rx="5" fill="{pl}" stroke="{INK}" stroke-width="2"/>'
+        f'<line x1="0" y1="23.5" x2="16" y2="23.5" stroke="{lace}" stroke-width="2.5"/></pattern>'
+        '<pattern id="mail" width="10" height="9" patternUnits="userSpaceOnUse">'
+        '<rect width="10" height="9" fill="#6f7478"/><circle cx="5" cy="4.5" r="3.4" fill="none" stroke="#b4b9bb" stroke-width="1.8"/></pattern>'
+        f'<pattern id="fur" width="14" height="10" patternUnits="userSpaceOnUse">'
+        f'<rect width="14" height="10" fill="{fur}"/><path d="M2 9 q2 -6 4 0 M8 7 q2 -6 4 0" stroke="{shade(fur, 0.72)}" stroke-width="2" fill="none"/></pattern>'
+        '<pattern id="furw" width="14" height="10" patternUnits="userSpaceOnUse">'
+        '<rect width="14" height="10" fill="#9a7a58"/><path d="M2 9 q2 -6 4 0 M8 7 q2 -6 4 0" stroke="#6e5238" stroke-width="2" fill="none"/></pattern>'
+    )
+
+
+def svg(c, body):
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{" ".join(map(str, VB))}" width="{W}" height="{H}">'
+        f"<defs>{LOOK}{patterns(c)}</defs>"
         f'<g filter="url(#paper)"><g filter="url(#ink)" stroke="{INK}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">{body}</g></g></svg>'
     )
 
 
-def shade(hex_color, k):
-    """k<1 어둡게, k>1 밝게"""
-    h = hex_color.lstrip("#")
-    r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
-    f = (lambda c: int(c * k)) if k < 1 else (lambda c: int(c + (255 - c) * (k - 1)))
-    return "#" + "".join(f"{max(0, min(255, f(c))):02x}" for c in (r, g, b))
+# ---------- 설계 → 그리기 값 ----------
+BULK = {"slim": 0.86, "average": 1.0, "stocky": 1.12, "heavy": 1.24}
+MONGOL_HATS = {"khan", "fur", "fur_flaps", "fur_peak", "helmet", "boqta", "scarf", "cuman", "none"}
 
 
-# ---------- 몸 ----------
-TORSO = "M 70 720 C 80 560 150 488 228 470 L 372 470 C 450 488 520 560 530 720 Z"
-# 쇠사슬 갑옷 무늬 (겹마다 같은 id - 한 SVG 안에서만 쓰임)
-MAIL = (
-    '<pattern id="mail" width="16" height="12" patternUnits="userSpaceOnUse">'
-    '<path d="M 0 6 Q 8 15 16 6 M -8 0 Q 0 9 8 0 M 8 0 Q 16 9 24 0" fill="none" stroke="#2b1d14" stroke-width="2.2" opacity=".55"/></pattern>'
-    f'<clipPath id="torso"><path d="{TORSO}"/></clipPath>'
-)
+def resolve(c):
+    """characters.json 한 인물(단계를 덮어쓴 것) → 그리기 값을 채운 사본"""
+    c = dict(c)
+    b = c.get("body") or {}
+    c["height"] = float(b.get("height", 1.0))
+    c["bulk"] = float((c.get("fig") or {}).get("bulk", BULK.get(b.get("build"), 1.0)))
+    female = c.get("sex") == "f"
+    child = c.get("age") == "child"
+    c["head"] = float((c.get("fig") or {}).get("head", 0.94 if child else 0.97 if female else 1.0))
+    c.setdefault("face", "round" if child else "oval")
+    culture = (c.get("era") or {}).get("culture", "")
+    c["boot_style"] = c.get("boot_style") or ("gutal" if ("몽골" in culture or "쿠만" in culture or "케레이트" in culture or not culture) else "plain")
+    c.setdefault("boots", "#3a2b22")
+    c.setdefault("trim", "#c9a24a")
+    c.setdefault("cloth", "#8b3a2b")
+    steel_hat = c.get("hat") in ("helmet", "rus_helmet", "turban_helmet")
+    c.setdefault("plates", "#7d93a6" if steel_hat and c.get("hat_color", "#888")[1] in "6789ab" else "#8a6440")
+    c.setdefault("brow", shade(c.get("hair", "#2a2018"), 0.9))
+    c["arm_w"] = 42 * c["bulk"] * (0.84 if child else 1)
+    return c
 
 
-def back_props(c):
-    """어깨 뒤로 보이는 소품 (몸통보다 먼저 그림): bow(활) · quiver(화살통) · spear(창)"""
-    out = []
-    for p in c.get("back", []):
-        if p == "quiver":  # 오른쪽 어깨 위로 화살 깃
-            out.append('<g transform="rotate(14 450 560)">')
-            for k, x in enumerate((430, 446, 462, 478)):
-                y = 392 + (k % 2) * 14
-                out.append(f'<path d="M {x} {y + 20} L {x} 560" fill="none" stroke-width="5"/>'
-                           f'<path d="M {x} {y} l -9 -26 l 9 8 l 9 -8 Z" fill="#efe2c4" stroke-width="4"/>')
-            out.append(f'<path d="M 418 452 L 492 452 L 486 600 L 424 600 Z" fill="{c.get("quiver", "#7a4a2a")}"/>'
-                       f'<path d="M 418 470 L 492 470" fill="none" stroke="{c.get("trim", "#d9b45a")}" stroke-width="8"/></g>')
-        if p == "bow":  # 왼쪽 어깨 뒤로 활 끝 (몽골 복합궁: 끝이 뒤로 젖힘)
-            out.append('<path d="M 120 610 C 90 520 120 420 170 380 C 182 370 192 356 188 340" fill="none" stroke="#5a3a1e" stroke-width="16"/>'
-                       '<path d="M 120 610 C 90 520 120 420 170 380 C 182 370 192 356 188 340" fill="none" stroke="#a8743a" stroke-width="7"/>'
-                       '<path d="M 186 344 L 214 560" fill="none" stroke="#efe2c4" stroke-width="3"/>')
-        if p == "spear":
-            out.append('<path d="M 470 720 L 520 150" fill="none" stroke="#5a3a1e" stroke-width="14"/>'
-                       '<path d="M 520 150 l -14 -10 l 22 -90 l 20 92 Z" fill="#a9aba6"/>'
-                       f'<path d="M 508 182 q 14 30 34 10 q -8 -22 -34 -10" fill="{c.get("plume", "#8b2f22")}"/>')
-    return "".join(out)
+class Fig:
+    def __init__(s, c):
+        s.c, s.h, s.w, s.hs = c, c["height"], c["bulk"], c["head"]
+        s.nx, s.ny = s.T(300, 520)
+
+    def T(s, x, y):  # 몸 좌표(키 1·덩치 1 기준) → 그림 좌표
+        return 300 + (x - 300) * s.w, GROUND - (GROUND - y) * s.h
+
+    def Hd(s, x, y):  # 머리 좌표(목 300,515) → 그림 좌표
+        return s.nx + (x - 300) * s.hs, s.ny + (y - 515) * s.hs
+
+    def head_g(s, inner):
+        return f'<g transform="translate({s.nx:.1f},{s.ny:.1f}) scale({s.hs}) translate(-300,-515)">{inner}</g>'
+
+    def body_g(s, inner):
+        return (f'<g transform="translate(300,{GROUND}) scale({s.w},{s.h}) translate(-300,-{GROUND})">'
+                + inner.replace("<path ", '<path vector-effect="non-scaling-stroke" ')
+                .replace("<rect ", '<rect vector-effect="non-scaling-stroke" ')
+                .replace("<circle ", '<circle vector-effect="non-scaling-stroke" ')
+                .replace("<ellipse ", '<ellipse vector-effect="non-scaling-stroke" ') + "</g>")
 
 
-def body_layer(c):
-    cloth = c.get("cloth", "#8b3a2b")
-    trim = c.get("trim", "#d9b45a")
-    kind = c.get("outfit", "deel")
-    dark = shade(cloth, 0.72)
-    out = [back_props(c)]
-    # 어깨·몸통 (모든 옷 공통 바탕)
-    out.append(f'<path d="{TORSO}" fill="{cloth}"/>')
-    out.append(f'<path d="M 470 520 C 505 570 520 640 528 720 L 440 720 C 445 640 450 580 470 520 Z" fill="{dark}" stroke="none"/>')
-    out.append(f'<path d="M 70 720 C 76 640 105 585 145 548 C 130 610 128 670 135 720 Z" fill="{shade(cloth, 1.25)}" stroke="none" opacity=".6"/>')
-    # 목
-    out.append(f'<path d="M 262 420 L 262 478 Q 300 500 338 478 L 338 420 Z" fill="{shade(c["skin"], 0.85)}"/>')
-    if kind == "deel":  # 몽골 옷: 오른쪽으로 여미는 깃
-        out.append(f'<path d="M 232 468 C 270 520 330 560 400 600 L 418 574 C 360 540 310 505 282 466 Z" fill="{trim}"/>')
-        out.append(f'<path d="M 296 522 C 336 552 372 576 408 594" fill="none" stroke="{shade(trim, 0.75)}" stroke-width="4"/>')
-        out.append(f'<path d="M 368 468 C 360 500 340 525 318 540" fill="none"/>')
-        out.append(f'<path d="M 120 690 L 480 690 L 485 720 L 115 720 Z" fill="{c.get("belt", "#c9822e")}"/>')
-    elif kind == "armor":  # 비늘 갑옷
-        out.append(f'<path d="M 232 468 Q 300 520 368 468" fill="{trim}"/>')
-        for row in range(5):
-            y = 540 + row * 36
-            x0 = 120 - row * 8
-            for k in range(int((360 + row * 16) / 40)):
-                x = x0 + k * 40 + (20 if row % 2 else 0)
-                if 100 < x < 500:
-                    out.append(f'<path d="M {x} {y} q 20 34 40 0" fill="{shade(cloth, 0.9)}" stroke-width="4"/>')
-    elif kind == "lamellar":  # 미늘 갑옷: 작은 쇠·가죽 조각을 끈으로 줄줄이 엮음 + 어깨 가리개
-        g = []
-        for row, y in enumerate(range(500, 730, 32)):
-            for k in range(-1, 22):
-                x = 60 + k * 24 + (12 if row % 2 else 0)
-                g.append(f'<rect x="{x}" y="{y}" width="22" height="34" rx="5" fill="{shade(cloth, 1.08 if (k + row) % 3 == 0 else 0.96)}" stroke-width="3"/>')
-            g.append(f'<path d="M 60 {y + 26} L 560 {y + 26}" fill="none" stroke="{trim}" stroke-width="4" opacity=".85"/>')
-        out.append(f'<g clip-path="url(#torso)">{"".join(g)}</g>')
-        out.append(f'<path d="{TORSO}" fill="none"/>')
-        for d in (1, -1):  # 어깨 가리개 3단
-            for k in range(3):
-                x = 300 - d * (168 + k * 22)
-                y = 500 + k * 34
-                out.append(f'<path d="M {x + d * 70} {y - 8} C {x + d * 30} {y - 18} {x - d * 40} {y + 10} {x - d * 62} {y + 70} L {x - d * 40} {y + 84} C {x - d * 22} {y + 40} {x + d * 20} {y + 20} {x + d * 70} {y + 22} Z" fill="{shade(cloth, 0.86 + k * 0.06)}" stroke-width="5"/>')
-        out.append(f'<path d="M 228 470 C 250 500 350 500 372 470 L 360 520 C 330 540 270 540 240 520 Z" fill="{trim}"/>')
-        out.append(f'<path d="M 110 690 L 490 690 L 494 720 L 106 720 Z" fill="{c.get("belt", "#5a3a22")}"/>')
-    elif kind == "mail":  # 쇠사슬 갑옷 (루스·호라즘 기사)
-        out.append(f'<path d="{TORSO}" fill="url(#mail)" stroke="none"/>')
-        out.append(f'<path d="M 236 470 Q 300 504 364 470" fill="none" stroke-width="6"/>')
-        if c.get("surcoat"):  # 가운데 겉옷 띠
-            out.append(f'<path d="M 240 520 L 360 520 L 380 720 L 220 720 Z" fill="{c["surcoat"]}"/>'
-                       f'<path d="M 240 520 L 360 520" fill="none" stroke="{trim}" stroke-width="8"/>')
-        out.append(f'<path d="M 110 680 L 490 680 L 494 708 L 106 708 Z" fill="{c.get("belt", "#5a3a22")}"/>'
-                   f'<rect x="284" y="676" width="32" height="36" rx="4" fill="{trim}" stroke-width="4"/>')
-    elif kind == "gown":  # 유럽·조지아 왕족 옷: 금실 깃 + 가운데 수놓은 띠 + 진주
-        out.append(f'<path d="M 222 470 C 240 520 360 520 378 470 L 392 482 C 370 548 230 548 208 482 Z" fill="{trim}"/>')
-        out.append(f'<path d="M 278 528 L 322 528 L 330 720 L 270 720 Z" fill="{trim}"/>')
-        out.append("".join(f'<circle cx="{300 + (k % 2) * 0}" cy="{560 + k * 34}" r="7" fill="#f3ead6" stroke-width="3"/>' for k in range(5)))
-        out.append("".join(f'<circle cx="{x}" cy="{y}" r="5" fill="#f3ead6" stroke-width="2.5"/>' for x, y in ((236, 500), (262, 516), (300, 522), (338, 516), (364, 500))))
-    elif kind == "robe":  # 페르시아 긴 옷: 깊은 V깃 + 허리띠
-        out.append(f'<path d="M 236 470 L 300 610 L 364 470 L 384 480 L 300 650 L 216 480 Z" fill="{trim}"/>')
-        out.append(f'<path d="M 252 470 L 300 590 L 348 470 Z" fill="{c.get("inner", shade(trim, 0.85))}"/>')
-        out.append(f'<path d="M 112 668 C 200 690 400 690 488 668 L 492 704 C 400 726 200 726 108 704 Z" fill="{c.get("belt", "#c9822e")}"/>')
-    if c.get("fur_collar"):  # 털 깃 (쿠만·초원 귀족)
-        fur = c.get("fur", "#a07850")
-        out.append(f'<path d="M 150 520 C 190 470 250 450 300 470 C 350 450 410 470 450 520 C 420 548 380 520 340 512 C 320 530 280 530 260 512 C 220 520 180 548 150 520 Z" fill="{fur}"/>')
-        out.append("".join(f'<path d="M {x} {506 + abs(300 - x) // 12} l 8 -14" fill="none" stroke="{shade(fur, 1.35)}" stroke-width="4"/>' for x in range(176, 430, 26)))
-    if c.get("cape"):
-        if c.get("cape_style") == "rus":  # 루스식 망토: 오른쪽 어깨에서 금 브로치로 여밈
-            out.append(f'<path d="M 70 720 C 72 600 120 520 220 476 L 420 500 C 330 540 220 620 190 720 Z" fill="{c["cape"]}"/>')
-            out.append(f'<path d="M 530 720 C 526 620 500 560 450 520 L 470 720 Z" fill="{c["cape"]}"/>')
-            out.append(f'<path d="M 120 690 C 140 610 190 556 260 520" fill="none" stroke="{shade(c["cape"], 0.7)}" stroke-width="5"/>')
-            out.append(f'<circle cx="420" cy="506" r="20" fill="{trim}"/><circle cx="420" cy="506" r="7" fill="#8b2f22" stroke-width="3"/>')
-        else:
-            out.append(f'<path d="M 70 720 C 75 600 120 520 200 478 L 150 720 Z" fill="{c["cape"]}"/>')
-            out.append(f'<path d="M 530 720 C 525 600 480 520 400 478 L 450 720 Z" fill="{c["cape"]}"/>')
-    if c.get("pendant") == "cross":  # 네스토리우스파 십자가 (케레이트)
-        out.append(f'<path d="M 300 500 L 300 548" fill="none" stroke-width="3"/>'
-                   f'<path d="M 292 548 h 16 v 14 h 14 v 16 h -14 v 26 h -16 v -26 h -14 v -16 h 14 Z" fill="{trim}" stroke-width="4"/>')
-    out.append(c.get("extra_body", ""))
-    return svg("".join(out), MAIL)
+# ---------- 몸 (몸 좌표: 어깨 214·386 / 548, 허리 640, 발바닥 880) ----------
+def robe_path(hem, flare=0):
+    return (f"M 214 528 C 236 516 270 512 300 512 C 330 512 364 516 386 528 C 404 540 410 560 410 590 "
+            f"L {420 + flare} {hem} C {380 + flare / 2} {hem + 12} {220 - flare / 2} {hem + 12} {180 - flare} {hem} L 190 590 C 190 560 196 540 214 528 Z")
 
 
-# ---------- 머리 ----------
-FACE = "M 172 270 C 168 150 432 150 428 270 C 428 360 380 420 300 425 C 220 420 172 360 172 270 Z"
-# 얼굴형 (정면만, 귀·이목구비 자리는 같음): round 둥근 볼(외게데이) · square 각진 턱(장군)
-FACES = {
-    "oval": FACE,
-    "round": "M 166 272 C 160 150 440 150 434 272 C 438 372 384 426 300 428 C 216 426 162 372 166 272 Z",
-    "square": "M 174 262 C 170 150 430 150 426 262 L 422 348 C 414 398 364 424 300 426 C 236 424 186 398 178 348 Z",
-}
+def long_outfit(c):
+    return c.get("sex") == "f" or c.get("outfit") in ("gown", "robe")
 
 
-def hair_back(c):
-    hair = c.get("hair", "#2a2018")
-    st = c.get("hair_style", "braids")
-    if st == "long":
-        # 얼굴 양옆으로 내려오는 머리 (턱 밑은 비움 - 수염처럼 보이지 않게)
-        return "".join(
-            f'<path d="M {x} 230 C {x - d * 30} 330 {x - d * 30} 430 {x - d * 10} 500 L {x + d * 50} 500 C {x + d * 30} 420 {x + d * 20} 330 {x + d * 40} 260 Z" fill="{hair}"/>'
-            for x, d in ((172, 1), (428, -1))
-        )
-    if st == "braids":  # 몽골식: 정수리를 밀고 귀 뒤로 땋아 늘어뜨린 고리
-        return "".join(
-            f'<path d="M {300 - d * 142} 300 C {300 - d * 172} 360 {300 - d * 172} 430 {300 - d * 150} 470 C {300 - d * 132} 498 {300 - d * 104} 486 {300 - d * 112} 452 C {300 - d * 120} 420 {300 - d * 122} 370 {300 - d * 104} 330 Z" fill="{hair}"/>'
-            f'<path d="M {300 - d * 150} 400 q {d * 18} 8 {d * 36} 0 M {300 - d * 148} 436 q {d * 16} 8 {d * 32} 0" fill="none" stroke="{shade(hair, 1.3)}" stroke-width="4"/>'
-            for d in (1, -1)
-        )
-    return ""
+def hem_y(c):
+    if c.get("outfit") == "segmentata":  # 로마 튜닉: 무릎 위
+        return 740
+    return 846 if long_outfit(c) else 782
 
 
-def hat_back(c):
-    """얼굴 뒤로 내려오는 모자 부분: 사슬 목가리개·면사포·보크타 장식 줄"""
-    kind = c.get("hat", "none")
-    if kind == "rus_helmet":
-        steel = shade(c.get("hat_color", "#9a9c96"), 0.92)
-        d = "M 168 236 C 150 330 150 420 196 478 L 404 478 C 450 420 450 330 432 236 Z"
-        return f'<path d="{d}" fill="{steel}"/><path d="{d}" fill="url(#mail)" stroke="none"/>'
-    if kind == "georgian_crown":  # 얇은 면사포가 어깨까지
+def back_layer(c):
+    s = ""
+    cape = c.get("cape")
+    if cape and c.get("cape_style") != "rus":  # 어깨에서 뒤로 늘어진 망토
+        s += f'<path d="M 206 530 C 160 600 150 720 150 {hem_y(c) + 20} C 230 {hem_y(c) + 42} 370 {hem_y(c) + 42} 450 {hem_y(c) + 20} C 450 720 440 600 394 530 Z" fill="{cape}"/>'
+        s += f'<path d="M 162 {hem_y(c) + 10} C 240 {hem_y(c) + 26} 360 {hem_y(c) + 26} 438 {hem_y(c) + 10}" fill="none" stroke="{shade(cape, 0.7)}" stroke-width="5"/>'
+    if cape and c.get("cape_style") == "rus":  # 루스 공후 망토(코르즈노) - 오른쪽 어깨 브로치
+        s += f'<path d="M 200 528 C 150 610 140 720 146 806 C 240 830 350 828 440 806 C 444 720 430 600 400 528 Z" fill="{cape}"/>'
+    if c.get("hat") == "georgian_crown":  # 면사포가 어깨 뒤로
         v = c.get("veil", "#efe6d2")
-        return (f'<path d="M 190 170 C 140 250 120 400 110 520 L 230 500 C 200 420 190 320 200 230 Z" fill="{v}" opacity=".85"/>'
-                f'<path d="M 410 170 C 460 250 480 400 490 520 L 370 500 C 400 420 410 320 400 230 Z" fill="{v}" opacity=".85"/>')
-    if kind == "boqta":  # 뺨 옆으로 늘어진 구슬 줄
-        gold = c.get("trim", "#d9b45a")
-        return "".join(
-            f'<path d="M {x} 220 L {x} 380" fill="none" stroke-width="3"/>' + "".join(f'<circle cx="{x}" cy="{y}" r="7" fill="{gold if k % 2 else "#2e6b4f"}" stroke-width="3"/>' for k, y in enumerate(range(240, 400, 26)))
-            for x in (162, 438)
-        )
-    return ""
+        s += f'<path d="M 214 500 C 170 560 160 640 166 700 C 240 716 360 716 434 700 C 440 640 430 560 386 500 Z" fill="{v}"/>'
+    if c.get("hair_style") == "long" and c.get("hat") not in ("boqta", "georgian_crown"):  # 등 뒤로 내려온 머리
+        s += f'<path d="M 236 520 C 220 580 226 640 250 676 L 350 676 C 374 640 380 580 364 520 Z" fill="{c.get("hair", "#1a120c")}"/>'
+    if "bow" in c.get("back", []):  # 등의 활 (합성궁 - 양끝이 뒤로 휨)
+        s += '<path d="M 400 470 C 470 520 478 640 412 712" fill="none" stroke="#2b1d14" stroke-width="15"/>'
+        s += '<path d="M 400 470 C 470 520 478 640 412 712" fill="none" stroke="#a87a3e" stroke-width="8"/>'
+        s += '<path d="M 400 470 C 392 462 386 462 382 470 M 412 712 C 404 722 398 722 394 714" fill="none" stroke="#2b1d14" stroke-width="7"/>'
+        s += '<line x1="400" y1="472" x2="410" y2="710" stroke="#e8dcc0" stroke-width="2"/>'
+    if "spear" in c.get("back", []):
+        s += '<path d="M 420 860 L 470 300" fill="none" stroke="#2b1d14" stroke-width="16"/><path d="M 420 860 L 470 300" fill="none" stroke="#7a5230" stroke-width="9"/>'
+        s += '<path d="M 470 300 l -12 -6 l 16 -70 l 12 72 Z" fill="#a9aba6"/>'
+    return s
 
 
-def hat(c):
-    kind = c.get("hat", "none")
-    col = c.get("hat_color", "#7a2e22")
-    fur = c.get("fur", "#a07850")
-    if kind == "fur":  # 몽골 털모자: 둥근 꼭대기 + 넓은 털 띠
-        return (
-            f'<path d="M 190 182 C 192 66 408 66 410 182 Z" fill="{col}"/>'
-            f'<path d="M 342 92 C 392 106 410 146 410 182 L 364 182 C 364 146 356 114 342 92 Z" fill="{shade(col, 0.72)}" stroke="none"/>'
-            f'<path d="M 300 72 L 300 48" stroke-width="8"/><circle cx="300" cy="42" r="11" fill="{c.get("trim", "#d9b45a")}"/>'
-            f'<path d="M 150 188 C 165 154 435 154 450 188 C 462 212 444 232 422 228 C 360 214 240 214 178 228 C 156 232 138 212 150 188 Z" fill="{fur}"/>'
-            f'<path d="M 380 168 C 420 172 450 182 450 188 C 462 212 444 232 422 228 C 410 222 395 220 380 218 Z" fill="{shade(fur, 0.75)}" stroke="none"/>'
-            + "".join(f'<path d="M {x} 196 l {6 + (x % 3)} -13" fill="none" stroke="{shade(fur, 1.35)}" stroke-width="4"/>' for x in range(172, 432, 30))
-        )
-    if kind == "helmet":  # 뾰족 투구 + 목 가리개
-        steel = c.get("hat_color", "#8d8f8a")
-        return (
-            f'<path d="M 168 236 C 160 330 175 380 200 410 L 214 300 Z" fill="{fur}"/>'
-            f'<path d="M 432 236 C 440 330 425 380 400 410 L 386 300 Z" fill="{fur}"/>'
-            f'<path d="M 168 230 C 175 120 260 70 300 40 C 340 70 425 120 432 230 Z" fill="{steel}"/>'
-            f'<path d="M 300 44 L 300 6" stroke-width="10"/><circle cx="300" cy="0" r="8" fill="{c.get("trim", "#c0392b")}"/>'
-            f'<path d="M 162 228 Q 300 205 438 228 L 438 246 Q 300 224 162 246 Z" fill="{shade(steel, 0.75)}"/>'
-            f'<path d="M 240 120 Q 260 90 300 60" fill="none" stroke="{shade(steel, 1.5)}" stroke-width="8"/>'
-            + (f'<path d="M 300 14 C 330 18 350 46 354 84 C 340 68 326 56 310 50 C 312 66 318 84 316 98 C 300 74 296 46 300 14 Z" fill="{c["plume"]}"/>' if c.get("plume") else "")
-        )
-    if kind == "crown":
-        gold = c.get("hat_color", "#d9a92e")
-        return (
-            f'<path d="M 190 205 L 190 120 L 235 165 L 270 100 L 300 150 L 330 100 L 365 165 L 410 120 L 410 205 Z" fill="{gold}"/>'
-            f'<circle cx="300" cy="185" r="12" fill="#b3261e"/><circle cx="240" cy="188" r="8" fill="#2a5db0"/><circle cx="360" cy="188" r="8" fill="#2a5db0"/>'
-        )
-    if kind == "turban":
-        cloth = c.get("hat_color", "#efe4cc")
-        return (
-            f'<path d="M 165 225 C 150 110 450 110 435 225 C 400 205 200 205 165 225 Z" fill="{cloth}"/>'
-            f'<path d="M 180 190 C 260 150 360 170 425 205 M 175 160 C 260 120 350 140 410 165" fill="none" stroke-width="4"/>'
-            f'<path d="M 300 150 l -16 22 l 16 22 l 16 -22 Z" fill="{c.get("trim", "#2e8b57")}"/>'
-            f'<path d="M 300 150 C 290 110 310 90 330 80" fill="none" stroke="{c.get("trim", "#2e8b57")}" stroke-width="8"/>'
-            + (f'<path d="M 304 156 C 300 100 330 40 372 10 C 360 60 340 110 316 158 Z" fill="{c["plume"]}"/>'
-               f'<path d="M 310 150 C 318 100 340 56 364 22" fill="none" stroke="{shade(c["plume"], 1.4)}" stroke-width="3"/>'
-               f'<circle cx="300" cy="172" r="15" fill="#d9a92e"/><circle cx="300" cy="172" r="7" fill="#8b2f22" stroke="none"/>' if c.get("plume") else "")
-        )
-    if kind == "scarf":  # 여인 머릿수건
-        cloth = c.get("hat_color", "#4f6d5a")
-        return (
-            f'<path d="M 160 300 C 130 120 470 120 440 300 L 470 470 L 400 450 C 430 380 425 300 420 250 C 380 180 220 180 180 250 C 175 300 170 380 200 450 L 130 470 Z" fill="{cloth}"/>'
-            f'<path d="M 182 248 C 230 190 370 190 418 248" fill="none" stroke="{c.get("trim", "#d9b45a")}" stroke-width="10"/>'
-        )
-    if kind == "fur_flaps":  # 귀덮개 털모자 (노장·초원 겨울)
-        return (
-            f'<path d="M 186 196 C 186 84 414 84 414 196 Z" fill="{col}"/>'
-            f'<path d="M 350 104 C 396 122 414 160 414 196 L 370 196 C 368 160 362 128 350 104 Z" fill="{shade(col, 0.72)}" stroke="none"/>'
-            f'<path d="M 258 134 Q 300 118 342 134" fill="none" stroke="{c.get("trim", "#d9b45a")}" stroke-width="8"/>'
-            + "".join(
-                f'<path d="M {300 - d * 150} 186 C {300 - d * 172} 230 {300 - d * 170} 300 {300 - d * 146} 336 C {300 - d * 128} 350 {300 - d * 112} 330 {300 - d * 116} 300 L {300 - d * 120} 200 Z" fill="{fur}"/>'
-                for d in (1, -1)
-            )
-            + f'<path d="M 150 196 C 165 164 435 164 450 196 C 456 216 440 230 420 226 C 360 214 240 214 180 226 C 160 230 144 216 150 196 Z" fill="{fur}"/>'
-            + "".join(f'<path d="M {x} 204 l {6 + (x % 3)} -13" fill="none" stroke="{shade(fur, 1.35)}" stroke-width="4"/>' for x in range(174, 432, 30))
-        )
-    if kind == "fur_peak":  # 뾰족한 꼭대기 + 앞이 갈라져 올라간 챙 (몽골 귀족)
-        return (
-            f'<path d="M 196 196 C 200 120 262 60 300 22 C 338 60 400 120 404 196 Z" fill="{col}"/>'
-            f'<path d="M 300 22 C 338 60 400 120 404 196 L 360 196 C 356 130 330 70 300 22 Z" fill="{shade(col, 0.74)}" stroke="none"/>'
-            f'<circle cx="300" cy="20" r="12" fill="{c.get("trim", "#d9b45a")}"/>'
-            f'<path d="M 152 214 C 150 170 226 160 292 176 L 300 200 L 308 176 C 374 160 450 170 448 214 C 380 204 220 204 152 214 Z" fill="{fur}"/>'
-            f'<path d="M 152 214 C 220 204 380 204 448 214 C 452 232 432 240 416 236 C 360 226 240 226 184 236 C 168 240 148 232 152 214 Z" fill="{shade(fur, 0.82)}"/>'
-            + (f'<path d="M 292 92 h 16 v 16 h 16 v 16 h -16 v 22 h -16 v -22 h -16 v -16 h 16 Z" fill="{c["hat_mark"]}" stroke-width="4"/>' if c.get("hat_mark") else "")
-        )
-    if kind == "cuman":  # 쿠만: 끝이 살짝 꺾인 높은 펠트 모자 + 위로 젖힌 털 챙
-        return (
-            f'<path d="M 194 200 C 200 120 250 50 330 6 C 340 30 334 50 322 62 C 380 110 402 150 406 200 Z" fill="{col}"/>'
-            f'<path d="M 322 62 C 380 110 402 150 406 200 L 366 200 C 362 150 346 100 322 62 Z" fill="{shade(col, 0.74)}" stroke="none"/>'
-            f'<path d="M 250 120 C 270 100 290 84 310 74" fill="none" stroke="{shade(col, 1.3)}" stroke-width="6"/>'
-            f'<path d="M 156 214 C 140 176 196 166 230 178 C 280 168 320 168 370 178 C 404 166 460 176 444 214 C 380 202 220 202 156 214 Z" fill="{fur}"/>'
-            f'<path d="M 156 214 C 220 202 380 202 444 214 C 448 230 430 238 414 234 C 360 224 240 224 186 234 C 170 238 152 230 156 214 Z" fill="{shade(fur, 0.8)}"/>'
-            + "".join(f'<path d="M {x} 196 l {6 + (x % 3)} -13" fill="none" stroke="{shade(fur, 1.35)}" stroke-width="4"/>' for x in range(180, 430, 28))
-        )
-    if kind == "rus_helmet":  # 루스 원뿔 투구 (쉬샤크) - 사슬 목가리개는 hat_back
-        steel = c.get("hat_color", "#9a9c96")
-        return (
-            f'<path d="M 172 232 C 170 150 236 92 300 12 C 364 92 430 150 428 232 Z" fill="{steel}"/>'
-            f'<path d="M 300 12 C 364 92 430 150 428 232 L 380 232 C 378 150 346 84 300 12 Z" fill="{shade(steel, 0.72)}" stroke="none"/>'
-            f'<path d="M 236 170 C 250 120 272 80 296 40" fill="none" stroke="{shade(steel, 1.6)}" stroke-width="9"/>'
-            f'<path d="M 300 12 L 300 -6" stroke-width="9"/><circle cx="300" cy="-8" r="7" fill="{c.get("trim", "#d9a92e")}"/>'
-            f'<path d="M 166 222 Q 300 200 434 222 L 434 246 Q 300 224 166 246 Z" fill="{c.get("trim", "#d9a92e")}"/>'
-            + "".join(f'<circle cx="{x}" cy="{233 - 9 * (1 - ((x - 300) / 134) ** 2)}" r="4" fill="{shade(c.get("trim", "#d9a92e"), 0.7)}" stroke="none"/>' for x in range(190, 420, 26))
-            + f'<path d="M 292 244 L 300 312 L 308 244 Z" fill="{steel}" stroke-width="5"/>'  # 코가리개
-        )
-    if kind == "crown_cap":  # 키예프 대공 모자: 둥근 금실 모자 + 검은 담비 털 띠 + 작은 십자가
-        gold = c.get("hat_color", "#c99a3a")
-        return (
-            f'<path d="M 190 196 C 186 90 414 90 410 196 Z" fill="{gold}"/>'
-            f'<path d="M 350 104 C 396 124 414 160 410 196 L 366 196 C 366 160 360 126 350 104 Z" fill="{shade(gold, 0.74)}" stroke="none"/>'
-            + "".join(f'<path d="M {x} 196 Q {300 + (x - 300) * 0.55} 130 300 92" fill="none" stroke="{shade(gold, 0.7)}" stroke-width="4"/>' for x in (230, 265, 335, 370))
-            + "".join(f'<circle cx="{x}" cy="{y}" r="8" fill="{col2}" stroke-width="3"/>' for x, y, col2 in ((248, 150, "#2a5db0"), (300, 128, "#8b2f22"), (352, 150, "#2a5db0")))
-            + '<path d="M 300 92 L 300 52 M 286 66 L 314 66" fill="none" stroke-width="7"/><circle cx="300" cy="92" r="9" fill="#f3ead6"/>'
-            f'<path d="M 156 200 C 170 168 430 168 444 200 C 456 222 438 240 418 236 C 360 222 240 222 182 236 C 162 240 144 222 156 200 Z" fill="{fur}"/>'
-            + "".join(f'<path d="M {x} 206 l {5 + (x % 3)} -12" fill="none" stroke="{shade(fur, 1.5)}" stroke-width="3"/>' for x in range(176, 430, 22))
-        )
-    if kind == "georgian_crown":  # 조지아 여왕관: 금 띠 + 십자가 끝 + 보석 (면사포는 hat_back)
-        gold = c.get("hat_color", "#d6a838")
-        pts = "M 192 206 L 192 150 L 222 172 L 246 118 L 274 160 L 300 100 L 326 160 L 354 118 L 378 172 L 408 150 L 408 206 Z"
-        return (
-            f'<path d="{pts}" fill="{gold}"/>'
-            f'<path d="M 300 100 L 326 160 L 354 118 L 378 172 L 408 150 L 408 206 L 350 206 Z" fill="{shade(gold, 0.78)}" stroke="none"/>'
-            + "".join(f'<path d="M {x} {y} l 0 -22 M {x - 8} {y - 14} l 16 0" fill="none" stroke-width="5"/>' for x, y in ((246, 118), (300, 100), (354, 118)))
-            + f'<path d="M 186 196 Q 300 180 414 196 L 414 222 Q 300 206 186 222 Z" fill="{shade(gold, 0.9)}"/>'
-            + "".join(f'<circle cx="{x}" cy="{208 - 6 * (1 - ((x - 300) / 114) ** 2)}" r="{9 if x == 300 else 6}" fill="{g}" stroke-width="3"/>' for x, g in ((220, "#2e6b4f"), (260, "#8b2f22"), (300, "#2a5db0"), (340, "#8b2f22"), (380, "#2e6b4f")))
-        )
-    if kind == "boqta":  # 몽골 귀부인 보크타: 머리에 맞는 모자 + 높은 기둥 + 위가 벌어진 꼭대기 + 깃털
-        red = c.get("hat_color", "#8b2f22")
-        gold = c.get("trim", "#d9b45a")
-        return (
-            f'<path d="M 182 226 C 176 120 424 120 418 226 C 360 210 240 210 182 226 Z" fill="{red}"/>'
-            f'<path d="M 272 140 C 270 90 262 40 254 8 L 346 8 C 338 40 330 90 328 140 Z" fill="{red}"/>'
-            f'<path d="M 304 140 C 306 90 312 40 318 8 L 346 8 C 338 40 330 90 328 140 Z" fill="{shade(red, 0.72)}" stroke="none"/>'
-            f'<path d="M 238 14 Q 300 -8 362 14 L 352 30 Q 300 16 248 30 Z" fill="{gold}"/>'
-            f'<path d="M 268 60 L 332 60 M 266 96 L 334 96" fill="none" stroke="{gold}" stroke-width="7"/>'
-            f'<path d="M 182 226 C 240 210 360 210 418 226" fill="none" stroke="{gold}" stroke-width="12"/>'
-            f'<circle cx="300" cy="186" r="13" fill="{gold}"/><circle cx="300" cy="186" r="5" fill="#2e6b4f" stroke="none"/>'
-        )
-    if kind == "turban_helmet":  # 터번을 감은 뾰족 투구 (호라즘 전사)
-        steel = c.get("steel", "#9a9c96")
-        cloth = c.get("hat_color", "#efe4cc")
-        return (
-            f'<path d="M 206 186 C 206 110 254 70 300 24 C 346 70 394 110 394 186 Z" fill="{steel}"/>'
-            f'<path d="M 300 24 C 346 70 394 110 394 186 L 352 186 C 350 120 330 70 300 24 Z" fill="{shade(steel, 0.72)}" stroke="none"/>'
-            f'<path d="M 252 140 C 262 100 280 70 298 46" fill="none" stroke="{shade(steel, 1.6)}" stroke-width="8"/>'
-            f'<path d="M 300 24 L 300 0" stroke-width="8"/>'
-            f'<path d="M 166 230 C 150 170 450 170 434 230 C 400 212 200 212 166 230 Z" fill="{cloth}"/>'
-            f'<path d="M 172 206 C 260 176 350 186 428 214 M 180 184 C 250 168 330 170 410 190" fill="none" stroke-width="4"/>'
-            f'<path d="M 300 196 l -12 16 l 12 16 l 12 -16 Z" fill="{c.get("trim", "#2e8b57")}"/>'
-        )
-    if kind == "hood":
-        cloth = c.get("hat_color", "#5a4632")
-        return f'<path d="M 150 330 C 120 110 480 110 450 330 L 470 480 L 130 480 Z M 190 300 C 185 170 415 170 410 300 C 400 380 200 380 190 300 Z" fill="{cloth}" fill-rule="evenodd"/>'
-    return ""
+def boots(c):
+    b = c["boots"]
+    s = ""
+    top = 760 if not long_outfit(c) else 812
+    if c["boot_style"] == "sandal":  # 로마 군화 칼리가: 맨다리 + 발등·발목 가죽끈 (트라야누스 기둥)
+        for sgn in (-1, 1):
+            x1, x2 = 300 + sgn * 16, 300 + sgn * 66
+            s += f'<path d="M {x1} 730 L {x2} 730 L {x2 + sgn*2} 852 L {x1} 852 Z" fill="{c["skin"]}"/>'
+            s += (f'<path d="M {x1} 846 L {x2 + sgn*2} 846 C {x2 + sgn*16} 852 {x2 + sgn*20} 864 {x2 + sgn*18} 878 L {x1} 878 Z" fill="{b}"/>')
+            for y in (800, 822):
+                s += f'<path d="M {x1} {y} L {x2 + sgn*2} {y + 4}" fill="none" stroke="{b}" stroke-width="7"/>'
+        return s
+    if c["boot_style"] != "gutal":  # 가죽 장화: 발목 위까지, 앞코 둥글게 (루스·호라즘·조지아)
+        for sgn in (-1, 1):
+            x1, x2 = 300 + sgn * 14, 300 + sgn * 74
+            s += (f'<path d="M {x1} {top} L {x2} {top} L {x2 + sgn*2} 846 C {x2 + sgn*14} 852 {x2 + sgn*22} 862 {x2 + sgn*20} 878 '
+                  f'L {x1} 878 Z" fill="{b}"/>')
+        return s
+    # 몽골 장화(구탈): 두꺼운 펠트·가죽, 종아리까지 오는 넓은 통, 앞코만 살짝 들림(말리지 않음), 굽 없음
+    for sgn in (-1, 1):
+        x1, x2 = 300 + sgn * 12, 300 + sgn * 80
+        s += (f'<path d="M {x1} {top} L {x2} {top} L {x2 + sgn*4} 842 C {x2 + sgn*16} 846 {x2 + sgn*26} 846 {x2 + sgn*30} 852 '
+              f'C {x2 + sgn*32} 870 {x2 + sgn*24} 878 {x2 + sgn*4} 878 L {x1} 878 Z" fill="{b}"/>')
+        if not long_outfit(c):
+            s += f'<path d="M {x1} 778 L {x2 + sgn*1} 778" fill="none" stroke="{c["trim"]}" stroke-width="6"/>'
+        s += f'<path d="M {x1 + sgn*8} 806 C {x1 + sgn*30} 812 {x2 - sgn*20} 800 {x2} 822" fill="none" stroke="{shade(b, 1.6)}" stroke-width="3"/>'
+    return s
 
 
-def beard(c):
-    kind = c.get("beard", "none")
-    col = c.get("beard_color", c.get("hair", "#2a2018"))
-    if kind == "mustache":  # 몽골식 늘어진 콧수염 + 턱 끝 수염
-        return (
-            f'<path d="M 300 338 C 270 334 250 345 240 380 C 255 362 275 352 300 352 C 325 352 345 362 360 380 C 350 345 330 334 300 338 Z" fill="{col}"/>'
-            f'<path d="M 288 405 L 300 450 L 312 405 Z" fill="{col}"/>'
-        )
-    if kind == "droop":  # 턱까지 늘어진 콧수염만 (쿠만·루스)
-        return f'<path d="M 300 336 C 272 332 252 346 246 372 C 238 400 232 424 226 440 C 246 420 252 392 262 368 C 274 354 288 350 300 352 C 312 350 326 354 338 368 C 348 392 354 420 374 440 C 368 424 362 400 354 372 C 348 346 328 332 300 336 Z" fill="{col}"/>'
-    if kind == "short":  # 짧게 다듬은 턱수염 + 콧수염
-        return (
-            f'<path d="M 188 316 C 192 400 240 440 300 444 C 360 440 408 400 412 316 C 396 370 368 396 300 398 C 232 396 204 370 188 316 Z" fill="{col}"/>'
-            f'<path d="M 300 340 C 276 334 256 344 250 360 C 270 352 286 352 300 356 C 314 352 330 352 350 360 C 344 344 324 334 300 340 Z" fill="{col}"/>'
-        )
-    if kind == "long":  # 가슴까지 내려오는 긴 수염 (노인 왕)
-        return (
-            f'<path d="M 184 320 C 186 420 230 470 252 540 C 270 580 290 600 300 610 C 310 600 330 580 348 540 C 370 470 414 420 416 320 C 398 376 366 400 300 402 C 234 400 202 376 184 320 Z" fill="{col}"/>'
-            f'<path d="M 262 440 C 270 500 284 550 296 590 M 338 440 C 330 500 316 550 304 590 M 300 410 L 300 600" fill="none" stroke="{shade(col, 0.75)}" stroke-width="3"/>'
-            f'<path d="M 300 338 C 270 332 250 344 242 366 C 262 356 284 354 300 358 C 316 354 338 356 358 366 C 350 344 330 332 300 338 Z" fill="{col}"/>'
-        )
-    if kind == "goatee":
-        return f'<path d="M 270 398 C 280 440 320 440 330 398 Z" fill="{col}"/>'
-    if kind == "full":
-        return (
-            f'<path d="M 182 320 C 190 430 250 470 300 472 C 350 470 410 430 418 320 C 400 380 360 400 300 402 C 240 400 200 380 182 320 Z" fill="{col}"/>'
-            f'<path d="M 262 345 C 280 335 320 335 338 345 C 320 352 280 352 262 345 Z" fill="{col}"/>'
-        )
-    return ""
+def torso(c):
+    r, t = c["cloth"], c["trim"]
+    kind = c.get("outfit", "deel")
+    hem = hem_y(c)
+    flare = 14 if long_outfit(c) else 0
+    s = f'<path d="M 272 470 L 272 530 L 328 530 L 328 470 Z" fill="{shade(c["skin"], 0.85)}"/>'  # 목 (머리가 들썩여도 틈이 안 보이게)
+    s += f'<path d="{robe_path(hem, flare)}" fill="{r}"/>'
+    s += f'<path d="M 190 600 L {182 - flare} {hem - 4} C 200 {hem + 2} 220 {hem + 4} 236 {hem + 6} L 228 600 Z" fill="{shade(r, 0.8)}" stroke="none"/>'
+    if kind in ("deel", "lamellar", "armor"):
+        # 델: 목에서 입은 사람 오른쪽(화면 왼쪽) 겨드랑이로 비스듬히 여밈 + 옷단
+        s += f'<path d="M 300 516 C 290 548 262 572 226 590" fill="none" stroke="{t}" stroke-width="14"/>'
+        s += f'<path d="M 300 516 C 290 548 262 572 226 590" fill="none" stroke="{INK}" stroke-width="3"/>'
+        s += f'<path d="M {184 - flare} {hem - 10} C 240 {hem + 4} 360 {hem + 4} {416 + flare} {hem - 10}" fill="none" stroke="{t}" stroke-width="12"/>'
+    if kind == "robe":  # 페르시아 긴 옷(카바): 깊은 V깃 + 안옷 + 앞섶 띠
+        s += f'<path d="M 252 518 L 300 600 L 348 518 Z" fill="{c.get("inner", shade(t, 0.85))}"/>'
+        s += f'<path d="M 244 516 L 300 606 L 356 516" fill="none" stroke="{t}" stroke-width="10"/>'
+        s += f'<path d="M 300 606 L 300 {hem + 8}" fill="none" stroke="{t}" stroke-width="10"/>'
+        s += f'<path d="M {184 - flare} {hem - 8} C 240 {hem + 6} 360 {hem + 6} {416 + flare} {hem - 8}" fill="none" stroke="{t}" stroke-width="10"/>'
+    if kind == "gown":  # 왕족 긴 옷: 금실 깃 + 가운데 수놓은 띠 + 옷단
+        s += f'<path d="M 246 518 C 270 540 330 540 354 518" fill="none" stroke="{t}" stroke-width="14"/>'
+        s += f'<path d="M 286 538 L 314 538 L 322 {hem + 8} L 278 {hem + 8} Z" fill="{t}"/>'
+        s += f'<path d="M {184 - flare} {hem - 8} C 240 {hem + 6} 360 {hem + 6} {416 + flare} {hem - 8}" fill="none" stroke="{t}" stroke-width="12"/>'
+    if kind in ("lamellar", "armor"):  # 미늘 조끼: 어깨에서 허벅지까지
+        s += '<path d="M 212 540 C 240 524 360 524 388 540 L 398 720 C 340 734 260 734 202 720 Z" fill="url(#lam)"/>'
+        s += f'<path d="M 202 720 C 260 734 340 734 398 720" fill="none" stroke="{c.get("lace", "#8a3b2c")}" stroke-width="7"/>'
+    if kind == "mail":  # 사슬 갑옷(무릎 위까지) + 겉옷 띠
+        s += '<path d="M 210 532 C 240 520 360 520 390 532 L 404 740 C 340 754 260 754 196 740 Z" fill="url(#mail)"/>'
+        s += f'<path d="M 196 740 C 260 754 340 754 404 740" fill="none" stroke="{INK}" stroke-width="4"/>'
+        if c.get("surcoat"):
+            s += f'<path d="M 262 560 L 338 560 L 352 748 L 248 748 Z" fill="{c["surcoat"]}"/><path d="M 262 560 L 338 560" fill="none" stroke="{t}" stroke-width="7"/>'
+    if kind == "segmentata":  # 로마 판금 갑옷(로리카 세그멘타타): 가슴·배를 두른 쇠띠 + 어깨 띠 (트라야누스 기둥)
+        s += f'<path d="M 206 534 C 240 520 360 520 394 534 L 400 652 C 340 664 260 664 200 652 Z" fill="{c.get("plate", "#9aa2a6")}"/>'
+        for y in (566, 592, 618, 642):
+            s += f'<path d="M 204 {y} C 260 {y + 12} 340 {y + 12} 396 {y}" fill="none" stroke-width="4"/>'
+        s += f'<path d="M 262 520 L 262 560 M 338 520 L 338 560" fill="none" stroke="{shade(c.get("plate", "#9aa2a6"), 0.7)}" stroke-width="5"/>'
+        for x in range(232, 372, 20):  # 허리 아래 가죽 띠(징 박은 앞치마)
+            s += f'<path d="M {x} 664 L {x} 720" fill="none" stroke="#2b1d14" stroke-width="10"/><path d="M {x} 664 L {x} 720" fill="none" stroke="#7a5230" stroke-width="5"/>'
+    # 허리띠
+    s += f'<path d="M 194 628 C 250 642 350 642 406 628 L 407 660 C 350 674 250 674 193 660 Z" fill="{c.get("belt", "#5a3a22")}"/>'
+    s += f'<rect x="288" y="636" width="24" height="28" rx="4" fill="{t}"/>'
+    if "quiver" in c.get("back", []):  # 오른쪽 허리 화살통(위가 넓은 통에 깃이 위로)
+        q = c.get("quiver", "#6e4a2c")
+        s += f'<path d="M 392 652 L 432 646 L 440 760 L 404 766 Z" fill="{q}"/>'
+        s += f'<path d="M 396 680 L 436 674 M 400 730 L 438 724" fill="none" stroke="{t}" stroke-width="5"/>'
+        for x in (398, 408, 418, 428):
+            s += f'<path d="M {x} 652 L {x+2} 612" fill="none" stroke="#2b1d14" stroke-width="4"/><path d="M {x-5} 616 L {x+2} 600 L {x+8} 618 Z" fill="#e8dcc0" stroke-width="3"/>'
+    if c.get("sword"):  # 왼쪽 허리 칼 (칼집, 십자 날밑 - 루스) / 굽은 칼(saber)
+        if c["sword"] == "saber":
+            s += '<path d="M 214 652 C 190 700 178 760 186 800" fill="none" stroke="#2b1d14" stroke-width="20"/><path d="M 214 652 C 190 700 178 760 186 800" fill="none" stroke="#5a3a24" stroke-width="12"/>'
+            s += '<path d="M 206 646 L 232 656" fill="none" stroke="#2b1d14" stroke-width="10"/><path d="M 206 646 L 232 656" fill="none" stroke="#c9a24a" stroke-width="5"/>'
+            s += '<path d="M 222 650 L 232 620" fill="none" stroke="#2b1d14" stroke-width="12"/>'
+        else:
+            s += '<path d="M 214 650 L 176 800" fill="none" stroke="#2b1d14" stroke-width="20"/><path d="M 214 650 L 176 800" fill="none" stroke="#5a3a24" stroke-width="12"/>'
+            s += '<path d="M 200 642 L 236 652" fill="none" stroke="#2b1d14" stroke-width="12"/><path d="M 200 642 L 236 652" fill="none" stroke="#c9a24a" stroke-width="6"/>'
+            s += '<path d="M 220 646 L 228 616" fill="none" stroke="#2b1d14" stroke-width="12"/><circle cx="229" cy="612" r="8" fill="#c9a24a"/>'
+    if c.get("shield") == "scutum":  # 로마 큰 방패(스쿠툼): 화면 오른쪽, 몸 앞, 붉은 바탕 + 금테 + 가운데 쇠 돋을새김
+        s += '<path d="M 372 560 C 400 550 452 550 478 560 L 478 800 C 452 810 400 810 372 800 Z" fill="#a8332a"/>'
+        s += '<path d="M 382 572 C 404 564 446 564 468 572 L 468 790 C 446 798 404 798 382 790 Z" fill="none" stroke="#c9a24a" stroke-width="6"/>'
+        s += '<circle cx="425" cy="680" r="22" fill="#b8bcbd"/><circle cx="425" cy="680" r="8" fill="#8a8e90" stroke-width="3"/>'
+    if c.get("collar") == "fur" or c.get("fur_collar"):  # 털 깃
+        s += '<path d="M 222 526 C 256 556 344 556 378 526 C 356 506 244 506 222 526 Z" fill="url(#fur)"/>'
+    if c.get("cape_style") == "rus" and c.get("cape"):
+        s += f'<path d="M 400 528 C 360 560 330 600 318 640" fill="none" stroke="{c["cape"]}" stroke-width="22"/>'
+        s += f'<circle cx="384" cy="540" r="17" fill="{t}"/><circle cx="384" cy="540" r="6" fill="#8a3b2c" stroke-width="3"/>'
+    if c.get("pendant") == "cross":  # 네스토리우스파 청동 십자가 (케레이트)
+        s += f'<path d="M 300 522 L 300 566" fill="none" stroke-width="3"/><path d="M 292 566 h 16 v 12 h 12 v 14 h -12 v 22 h -16 v -22 h -12 v -14 h 12 Z" fill="{t}" stroke-width="4"/>'
+    return s
 
 
-# 포즈 = 보는 방향(view) + 표정(expr). 장면표에서 "pose": "angry" 처럼 고른다 (없으면 front)
-POSES = {
-    "front": ("front", None),
-    "side": ("side", None),  # 3/4 옆모습, 오른쪽을 봄 (왼쪽은 영상에서 뒤집기 facing: "left")
-    "angry": ("front", "angry"),
-    "shocked": ("front", "shocked"),
-    "sad": ("front", "sad"),
-    "happy": ("front", "happy"),
+# 팔: (어깨, 팔꿈치, 손) 몸 좌표, 화면 왼쪽 팔 기준 - 오른팔은 좌우 뒤집음
+ARMS = {
+    "down": ((214, 548), (194, 640), (204, 724)),
+    "limp": ((216, 560), (206, 650), (218, 738)),
+    "fist_up": ((214, 548), (152, 520), (160, 432)),
+    "hands_up": ((214, 548), (150, 500), (128, 418)),
+    "hip": ((214, 548), (140, 598), (188, 648)),
+    "point": ((214, 548), (150, 560), (78, 520)),
+    "wave": ((214, 548), (136, 528), (148, 430)),
+    "open": ((214, 548), (164, 640), (104, 604)),
 }
-# 옆모습: 이목구비를 가로로 0.82배 줄이고 오른쪽으로 40 옮김 (300 기준)
-SIDE = "matrix(0.82 0 0 1 94 0)"
+HAND = {"fist_up": "fist", "hip": "fist", "point": "point", "hands_up": "open", "wave": "open", "open": "open"}
+
+
+def sleeve_col(c):
+    return c.get("sleeve") or ("#6f7478" if c.get("outfit") == "mail" else c["cloth"])
+
+
+def stroke_arm(c, d, wdt):
+    return (f'<path d="{d}" fill="none" stroke="{INK}" stroke-width="{wdt + 12:.0f}"/>'
+            f'<path d="{d}" fill="none" stroke="{sleeve_col(c)}" stroke-width="{wdt:.0f}"/>')
+
+
+def hand_at(c, hx, hy, kind, dx, r=22):
+    skin = c["skin"]
+    s = f'<circle cx="{hx:.0f}" cy="{hy:.0f}" r="{r}" fill="{skin}"/>'
+    if kind == "point":  # 집게손가락
+        s += (f'<path d="M {hx + dx*16:.0f} {hy - 4:.0f} l {dx*26} -6" fill="none" stroke="{INK}" stroke-width="20"/>'
+              f'<path d="M {hx + dx*16:.0f} {hy - 4:.0f} l {dx*26} -6" fill="none" stroke="{skin}" stroke-width="11"/>')
+    elif kind == "open":  # 펼친 손: 엄지
+        s += f'<ellipse cx="{hx + dx*20:.0f}" cy="{hy - 4:.0f}" rx="9" ry="13" fill="{skin}" transform="rotate({dx*30} {hx + dx*20:.0f} {hy - 4:.0f})"/>'
+    elif kind == "fist":
+        s += f'<path d="M {hx-11:.0f} {hy-6:.0f} l 20 0 M {hx-11:.0f} {hy+5:.0f} l 20 0" fill="none" stroke="{INK}" stroke-width="3"/>'
+    return s
+
+
+def arm(f, kind, right):
+    c = f.c
+    pts = ARMS[kind]
+    if right:
+        pts = tuple((600 - x, y) for x, y in pts)
+    (sx, sy), (ex, ey), (hx, hy) = (f.T(*p) for p in pts)
+    d = f"M {sx:.0f} {sy:.0f} Q {ex:.0f} {ey:.0f} {hx:.0f} {hy:.0f}"
+    wdt = c["arm_w"]
+    s = stroke_arm(c, d, wdt)
+    t = 0.86  # 소매 끝(말발굽 소매) 띠
+    cx = (1 - t) ** 2 * sx + 2 * (1 - t) * t * ex + t * t * hx
+    cy = (1 - t) ** 2 * sy + 2 * (1 - t) * t * ey + t * t * hy
+    s += f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{wdt/2+4:.0f}" fill="{c.get("cuff", c["trim"])}"/>'
+    s += shoulder_guard(f, right)
+    s += hand_at(c, hx, hy, HAND.get(kind, "plain"), 1 if right else -1, 25 if kind == "fist_up" else 22)
+    return s
+
+
+def shoulder_guard(f, right):
+    if f.c.get("outfit") not in ("lamellar", "armor"):
+        return ""
+    ax, ay = f.T(386 if right else 214, 548)
+    return f'<path d="M {ax-30:.0f} {ay-14:.0f} C {ax-10:.0f} {ay-30:.0f} {ax+12:.0f} {ay-30:.0f} {ax+30:.0f} {ay-14:.0f} L {ax+24:.0f} {ay+44:.0f} L {ax-24:.0f} {ay+44:.0f} Z" fill="url(#lam)"/>'
+
+
+def crossed_arms(f):
+    """팔짱: 위팔 둘 → 왼쪽 아래팔(손은 오른 위팔 밑에 숨음) → 오른쪽 아래팔이 위로 가로질러 왼 위팔을 잡음"""
+    c = f.c
+    wdt = c["arm_w"]
+    P = lambda x, y: "%.0f %.0f" % f.T(x, y)  # noqa: E731
+    s = stroke_arm(c, f"M {P(214, 548)} Q {P(186, 600)} {P(204, 652)}", wdt)
+    s += stroke_arm(c, f"M {P(204, 652)} Q {P(300, 662)} {P(380, 628)}", wdt)  # 왼 아래팔 (아래)
+    s += stroke_arm(c, f"M {P(386, 548)} Q {P(414, 600)} {P(396, 652)}", wdt)
+    s += stroke_arm(c, f"M {P(396, 620)} Q {P(300, 640)} {P(226, 610)}", wdt)  # 오른 아래팔 (위)
+    cx, cy = f.T(392, 624)
+    s += f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{wdt/2+4:.0f}" fill="{c.get("cuff", c["trim"])}"/>'
+    s += shoulder_guard(f, False) + shoulder_guard(f, True)
+    hx, hy = f.T(222, 606)
+    s += f'<ellipse cx="{hx:.0f}" cy="{hy:.0f}" rx="20" ry="24" fill="{c["skin"]}"/>'
+    s += f'<path d="M {hx-12:.0f} {hy-10:.0f} l 0 20 M {hx-2:.0f} {hy-12:.0f} l 0 22" fill="none" stroke-width="3"/>'
+    return s
+
+
+# ---------- 머리 (머리 좌표: 얼굴 가운데 300,400 / 목 300,515) ----------
+FACES = {
+    "round": "M 182 400 C 182 300 418 300 418 400 C 418 476 370 516 300 516 C 230 516 182 476 182 400 Z",
+    "oval": "M 190 396 C 190 296 410 296 410 396 C 410 478 366 518 300 518 C 234 518 190 478 190 396 Z",
+    "square": "M 180 392 C 180 300 420 300 420 392 C 422 456 410 500 360 514 C 330 520 270 520 240 514 C 190 500 178 456 180 392 Z",
+}
+SIDE = "matrix(0.86 0 0 1 72 0)"  # 옆(3/4)모습: 이목구비를 오른쪽으로 30 옮기고 가로로 줄임
 
 
 def feat(view, inner):
     return f'<g transform="{SIDE}">{inner}</g>' if view == "side" else inner
 
 
-def brows(c, expr):
-    col = c.get("brow", c.get("hair", "#2a2018"))
-    mood = expr or c.get("mood", "calm")
-    tilt = {"angry": 16, "stern": 8, "calm": 0, "worried": -12, "sad": -14, "smug": 4, "shocked": -4, "happy": -2}.get(mood, 0)
-    lift = {"shocked": 18, "happy": 6, "sad": 2}.get(mood, 0)
-    sw = 12 if mood in ("angry", "stern") else 9
-    y = 238 - lift
-    return (
-        f'<path d="M 212 {y - tilt} Q 240 {y - 12 - tilt} 272 {y + 2 + tilt}" fill="none" stroke="{col}" stroke-width="{sw}"/>'
-        f'<path d="M 388 {y - tilt} Q 360 {y - 12 - tilt} 328 {y + 2 + tilt}" fill="none" stroke="{col}" stroke-width="{sw}"/>'
-    )
+def hair_back(c, view):
+    hair = c.get("hair", "#2a2018")
+    st = c.get("hair_style", "braids")
+    s = ""
+    if st == "braids" and c.get("hat") not in ("rus_helmet", "turban", "turban_helmet", "georgian_crown"):
+        # 몽골 남자 머리: 정수리 밀고 귀 뒤로 땋아 고리로(케귈)
+        for sgn in (-1, 1):
+            if view == "side" and sgn > 0:
+                continue
+            x = 300 + sgn * 112
+            s += f'<path d="M {x} 410 C {x + sgn*44} 420 {x + sgn*50} 500 {x + sgn*14} 512 C {x - sgn*8} 500 {x + sgn*4} 450 {x} 440 Z" fill="{hair}"/>'
+            s += f'<path d="M {x + sgn*16} 450 l {sgn*14} 6 M {x + sgn*18} 476 l {sgn*14} 4" fill="none" stroke="{shade(hair, 1.8)}" stroke-width="3"/>'
+    if st == "long" and c.get("hat") not in ("boqta", "georgian_crown"):  # 얼굴 양옆으로 내려오는 머리 (턱 밑은 비움)
+        for x, d in ((190, 1), (410, -1)):
+            s += f'<path d="M {x} 340 C {x - d*30} 420 {x - d*30} 500 {x - d*8} 540 L {x + d*40} 540 C {x + d*20} 480 {x + d*14} 420 {x + d*34} 360 Z" fill="{hair}"/>'
+    return s
 
 
-FACE_SIDE = "M 178 270 C 172 150 430 146 438 258 C 448 292 446 330 428 352 C 405 402 360 425 306 426 C 230 420 178 360 178 270 Z"
+def hat_back(c, view):
+    """얼굴 뒤로 가는 모자 부분: 투구 목·귀 가리개(얼굴을 가리지 않게 뒤로), 사슬 목가리개, 면사포"""
+    h = c.get("hat", "none")
+    s = ""
+    if h == "helmet":  # 미늘 목·귀 가리개 - 귀 자리에서 턱 높이까지, 얼굴 뒤
+        s += '<path d="M 186 356 C 160 400 158 460 176 492 L 214 482 L 212 360 Z" fill="url(#lam)"/>'
+        if view != "side":
+            s += '<path d="M 414 356 C 440 400 442 460 424 492 L 386 482 L 388 360 Z" fill="url(#lam)"/>'
+    if h in ("rus_helmet", "turban_helmet"):  # 사슬 목가리개가 얼굴 둘레·목을 덮음
+        s += '<path d="M 176 360 C 160 450 170 540 210 560 L 390 560 C 430 540 440 450 424 360 Z" fill="url(#mail)"/>'
+    if h == "georgian_crown":  # 얇은 면사포가 어깨까지
+        v = c.get("veil", "#efe6d2")
+        for sgn in (-1, 1):  # 얼굴 양옆 띠 (어깨 뒤로 늘어진 부분은 몸 겹 back_layer)
+            x = 300 + sgn * 94
+            s += f'<path d="M {x} 330 C {x + sgn*44} 400 {x + sgn*52} 470 {x + sgn*46} 540 L {x + sgn*10} 540 C {x + sgn*16} 470 {x + sgn*10} 410 {x - sgn*6} 350 Z" fill="{v}"/>'
+    if h == "scarf":
+        col = c.get("hat_color", "#4f6d5a")
+        s += f'<path d="M 184 330 C 150 420 150 520 170 560 L 430 560 C 450 520 450 420 416 330 Z" fill="{col}"/>'
+    return s
 
 
-def head_layer(c, view, expr):
+def ears(c, view):
+    if c.get("hat") in ("rus_helmet", "helmet", "fur_flaps", "turban_helmet", "scarf", "georgian_crown") or c.get("hair_style") == "long":
+        return ""
     skin = c["skin"]
-    out = [hat_back(c), hair_back(c)]
-    if view == "side":
-        out.append(f'<ellipse cx="190" cy="290" rx="22" ry="32" fill="{skin}"/>')
-        out.append(f'<path d="{FACE_SIDE}" fill="{skin}"/>')
-        out.append(f'<path d="M 214 230 C 196 290 206 370 270 418 C 220 400 180 340 214 230 Z" fill="{shade(skin, 0.86)}" stroke="none"/>')
-    else:
-        out.append(f'<ellipse cx="172" cy="285" rx="20" ry="30" fill="{skin}"/><ellipse cx="428" cy="285" rx="20" ry="30" fill="{skin}"/>')
-        out.append(f'<path d="{FACES.get(c.get("face", "oval"), FACE)}" fill="{skin}"/>')
-        out.append(f'<path d="M 400 220 C 425 290 410 370 330 418 C 380 400 430 340 400 220 Z" fill="{shade(skin, 0.86)}" stroke="none"/>')
-    blush = 0.55 if expr in ("happy", "angry") else 0.35
-    f = [f'<ellipse cx="228" cy="335" rx="24" ry="13" fill="#d9776a" opacity="{blush}" stroke="none"/><ellipse cx="372" cy="335" rx="24" ry="13" fill="#d9776a" opacity="{blush}" stroke="none"/>']
-    if view == "side":
-        f.append('<path d="M 300 288 Q 318 316 330 322 Q 316 330 302 326" fill="none" stroke-width="5"/>')
-    else:
-        f.append('<path d="M 300 290 Q 292 318 300 324 Q 306 326 312 320" fill="none" stroke-width="5"/>')
-    if c.get("age", "adult") == "old":
-        f.append('<path d="M 210 372 q 14 10 28 6 M 362 378 q 14 4 28 -6 M 255 210 q 45 -10 90 0" fill="none" stroke-width="4" opacity="0.7"/>')
-    if c.get("scar"):
-        f.append('<path d="M 350 245 L 380 320" fill="none" stroke="#8a3b2e" stroke-width="5"/>')
-    if expr == "angry":  # 미간 주름
-        f.append('<path d="M 292 236 l 4 16 M 308 236 l -4 16" fill="none" stroke-width="4" opacity="0.6"/>')
-    if expr == "sad":  # 눈물
-        f.append('<path d="M 368 300 Q 360 318 368 326 Q 376 318 368 300 Z" fill="#8cc4e8" stroke="#3a6a8a" stroke-width="3"/>')
-    out.append(feat(view, "".join(f)))
-    if c.get("hat", "none") == "none":
-        hair = c.get("hair", "#2a2018")
-        g = ""
-        if c.get("hair_style") == "braids":
-            g += f'<path d="M 184 236 C 200 160 400 160 416 236 C 380 196 220 196 184 236 Z" fill="{shade(skin, 0.8)}"/>'
-            g += f'<path d="M 282 175 C 290 200 310 200 318 175 L 312 212 L 288 212 Z" fill="{hair}"/>'
+    xs = (-1,) if view == "side" else (-1, 1)
+    return "".join(f'<ellipse cx="{300 + sgn*(112 if view != "side" else 106)}" cy="420" rx="16" ry="22" fill="{skin}"/>' for sgn in xs)
+
+
+def hat(c):
+    h = c.get("hat", "none")
+    col = c.get("hat_color", "#7a2e22")
+    t = c["trim"]
+    s = ""
+    if h == "khan":  # 흰 펠트 모자 + 털 테 (원 황실 초상의 칭기즈칸)
+        s += f'<path d="M 200 352 C 196 250 404 250 400 352 Z" fill="{c.get("hat_color", "#f2ead8")}"/>'
+        s += '<path d="M 300 262 C 290 290 290 330 296 352 M 250 278 C 244 300 244 330 248 350 M 350 278 C 356 300 356 330 352 350" fill="none" stroke="#c8bba0" stroke-width="4"/>'
+        s += '<path d="M 176 350 C 176 326 424 326 424 350 C 424 378 176 378 176 350 Z" fill="url(#furw)"/>'
+        s += f'<circle cx="300" cy="254" r="11" fill="{t}"/>'
+    elif h == "helmet":  # 둥근 원뿔 쇠 투구 + 말총 술 (집사 세밀화·몽고습래회사) - 가리개는 hat_back
+        s += f'<path d="M 300 236 C 236 246 194 300 190 362 L 410 362 C 406 300 364 246 300 236 Z" fill="{col}"/>'
+        s += f'<path d="M 300 240 L 300 360 M 248 262 C 236 296 232 330 234 360 M 352 262 C 364 296 368 330 366 360" fill="none" stroke="{shade(col, 0.72)}" stroke-width="5"/>'
+        s += f'<path d="M 186 352 C 220 342 380 342 414 352 L 414 372 C 380 362 220 362 186 372 Z" fill="{t}"/>'
+        s += '<path d="M 300 236 L 300 200" stroke-width="9"/>'
+        if c.get("plume"):
+            p = c["plume"]
+            s += f'<path d="M 300 196 C 276 196 258 214 252 246 C 270 236 282 232 300 230 C 318 232 330 236 348 246 C 342 214 324 196 300 196 Z" fill="{p}"/>'
+            s += f'<path d="M 276 214 C 270 222 266 230 264 238 M 300 204 L 300 226 M 324 214 C 330 222 334 230 336 238" fill="none" stroke="{shade(p, 0.65)}" stroke-width="3"/>'
         else:
-            g += f'<path d="M 172 262 C 160 140 440 140 428 262 C 400 210 360 190 300 200 C 240 190 200 210 172 262 Z" fill="{hair}"/>'
-        out.append(f'<g transform="translate(10 0)">{g}</g>' if view == "side" else g)
-    out.append(feat(view, beard(c) + brows(c, expr)))
-    h = hat(c)
-    out.append(f'<g transform="translate(12 0)">{h}</g>' if view == "side" else h)
-    out.append(c.get("extra_head", ""))
-    return svg("".join(out), MAIL)
+            s += f'<circle cx="300" cy="198" r="9" fill="{t}"/>'
+    elif h == "fur_flaps":  # 귀덮개 털모자 (초원 사람의 겨울 모자)
+        for sgn in (-1, 1):
+            x = 300 + sgn * 118
+            s += f'<path d="M {x - sgn*24} 350 C {x + sgn*18} 360 {x + sgn*22} 440 {x + sgn*6} 478 C {x - sgn*14} 476 {x - sgn*26} 440 {x - sgn*30} 360 Z" fill="url(#fur)"/>'
+        s += f'<path d="M 196 350 C 192 254 408 254 404 350 Z" fill="{col}"/>'
+        s += f'<path d="M 300 258 L 300 346" stroke="{shade(col, 0.7)}" stroke-width="5"/>'
+        s += '<path d="M 182 350 C 182 322 418 322 418 350 C 418 376 182 376 182 350 Z" fill="url(#fur)"/>'
+    elif h == "fur":  # 몽골 털모자: 둥근 꼭대기 + 넓은 털 테
+        s += f'<path d="M 202 352 C 198 258 402 258 398 352 Z" fill="{col}"/>'
+        s += f'<path d="M 336 288 C 376 300 398 322 398 352 L 362 352 C 362 326 354 304 336 288 Z" fill="{shade(col, 0.75)}" stroke="none"/>'
+        s += f'<path d="M 300 262 L 300 244" stroke-width="7"/><circle cx="300" cy="240" r="9" fill="{t}"/>'
+        s += '<path d="M 178 350 C 178 324 422 324 422 350 C 422 378 178 378 178 350 Z" fill="url(#fur)"/>'
+    elif h == "fur_peak":  # 뾰족한 꼭대기 + 앞이 갈라져 올라간 털 챙 (몽골·케레이트 귀족)
+        s += f'<path d="M 206 352 C 214 290 262 238 300 206 C 338 238 386 290 394 352 Z" fill="{col}"/>'
+        s += f'<path d="M 300 206 C 338 238 386 290 394 352 L 356 352 C 350 290 330 240 300 206 Z" fill="{shade(col, 0.78)}" stroke="none"/>'
+        s += f'<circle cx="300" cy="204" r="9" fill="{t}"/>'
+        s += '<path d="M 178 362 C 172 330 236 322 290 334 L 300 352 L 310 334 C 364 322 428 330 422 362 C 360 350 240 350 178 362 Z" fill="url(#fur)"/>'
+    elif h == "cuman":  # 쿠만: 높은 뾰족 펠트 모자(끝이 앞으로 살짝 꺾임) + 털 챙 (쿠만 돌 인물상)
+        s += f'<path d="M 208 352 C 214 280 262 220 318 180 C 330 196 326 212 316 222 C 362 270 388 310 392 352 Z" fill="{col}"/>'
+        s += f'<path d="M 316 222 C 362 270 388 310 392 352 L 354 352 C 350 300 336 256 316 222 Z" fill="{shade(col, 0.76)}" stroke="none"/>'
+        s += '<path d="M 180 352 C 180 326 420 326 420 352 C 420 378 180 378 180 352 Z" fill="url(#fur)"/>'
+    elif h == "boqta":  # 몽골 귀부인 보크타: 머리에 맞는 모자 + 높은 기둥 + 위가 벌어진 꼭대기
+        s += f'<path d="M 190 380 C 184 270 416 270 410 380 C 360 362 240 362 190 380 Z" fill="{col}"/>'
+        s += f'<path d="M 280 290 C 278 240 270 190 262 150 L 338 150 C 330 190 322 240 320 290 Z" fill="{col}"/>'
+        s += f'<path d="M 304 290 C 306 240 312 190 318 150 L 338 150 C 330 190 322 240 320 290 Z" fill="{shade(col, 0.72)}" stroke="none"/>'
+        s += f'<path d="M 248 156 Q 300 136 352 156 L 342 170 Q 300 156 258 170 Z" fill="{t}"/>'
+        s += f'<path d="M 274 206 L 326 206 M 272 244 L 328 244" fill="none" stroke="{t}" stroke-width="6"/>'
+        s += f'<path d="M 190 380 C 240 362 360 362 410 380" fill="none" stroke="{t}" stroke-width="10"/>'
+        if c.get("veil"):  # 뒤로 늘어진 천
+            pass
+    elif h == "turban":  # 터번: 흰 천을 감은 둥근 덩어리
+        cl = c.get("hat_color", "#efe4cc")
+        s += f'<path d="M 184 372 C 150 214 450 214 416 372 C 380 352 220 352 184 372 Z" fill="{cl}"/>'
+        s += f'<path d="M 194 340 C 260 302 350 312 410 350 M 194 302 C 260 266 340 272 404 306 M 240 280 C 282 266 322 268 362 282" fill="none" stroke="{shade(cl, 0.72)}" stroke-width="4"/>'
+    elif h == "turban_helmet":  # 터번을 감은 뾰족 투구 (호라즘 전사)
+        steel = c.get("steel", "#9a9c96")
+        cl = c.get("hat_color", "#efe4cc")
+        s += f'<path d="M 214 330 C 216 270 262 230 300 196 C 338 230 384 270 386 330 Z" fill="{steel}"/>'
+        s += f'<path d="M 300 196 C 338 230 384 270 386 330 L 350 330 C 346 280 330 236 300 196 Z" fill="{shade(steel, 0.74)}" stroke="none"/>'
+        s += '<path d="M 300 196 L 300 176" stroke-width="7"/>'
+        s += f'<path d="M 182 372 C 166 310 434 310 418 372 C 380 352 220 352 182 372 Z" fill="{cl}"/>'
+        s += f'<path d="M 190 346 C 260 322 350 326 412 352" fill="none" stroke="{shade(cl, 0.72)}" stroke-width="4"/>'
+    elif h == "rus_helmet":  # 루스 원뿔 투구 + 코 가리개 (립베츠형 투구) + 금테
+        s += f'<path d="M 300 176 C 270 230 214 290 196 366 L 404 366 C 386 290 330 230 300 176 Z" fill="{c.get("hat_color", "#9aa2a6")}"/>'
+        s += '<path d="M 300 182 C 290 240 286 310 288 366" fill="none" stroke="#c6ccce" stroke-width="10"/>'
+        s += f'<path d="M 192 354 L 408 354 L 408 380 L 192 380 Z" fill="{t}"/>'
+        s += f'<circle cx="300" cy="172" r="8" fill="{t}"/>'
+    elif h == "crown_cap":  # 루스 공후 모자: 둥근 천 모자 + 검은 털 띠 (스뱌토슬라프 이즈보르니크 세밀화)
+        s += f'<path d="M 204 352 C 198 252 402 252 396 352 Z" fill="{col}"/>'
+        s += f'<path d="M 336 284 C 376 298 396 322 396 352 L 360 352 C 360 326 352 302 336 284 Z" fill="{shade(col, 0.74)}" stroke="none"/>'
+        s += '<path d="M 176 350 C 176 322 424 322 424 350 C 424 380 176 380 176 350 Z" fill="url(#fur)"/>'
+    elif h == "georgian_crown":  # 조지아 여왕관: 금 띠 + 십자가 끝 (면사포는 hat_back)
+        g = c.get("hat_color", "#d6a838")
+        s += f'<path d="M 204 362 L 204 312 L 230 330 L 252 286 L 276 324 L 300 270 L 324 324 L 348 286 L 370 330 L 396 312 L 396 362 Z" fill="{g}"/>'
+        s += "".join(f'<path d="M {x} {y} l 0 -20 M {x - 7} {y - 13} l 14 0" fill="none" stroke-width="5"/>' for x, y in ((252, 286), (300, 270), (348, 286)))
+        s += f'<path d="M 198 352 Q 300 336 402 352 L 402 374 Q 300 358 198 374 Z" fill="{shade(g, 0.88)}"/>'
+        s += "".join(f'<circle cx="{x}" cy="{362 - 5 * (1 - ((x - 300) / 100) ** 2):.0f}" r="{8 if x == 300 else 6}" fill="{gc}" stroke-width="3"/>' for x, gc in ((236, "#2e6b4f"), (268, "#8b2f22"), (300, "#2a5db0"), (332, "#8b2f22"), (364, "#2e6b4f")))
+    elif h == "scarf":  # 여인 머릿수건
+        s += f'<path d="M 184 380 C 170 270 430 270 416 380 C 380 350 220 350 184 380 Z" fill="{col}"/>'
+        s += f'<path d="M 190 360 C 240 330 360 330 410 360" fill="none" stroke="{t}" stroke-width="8"/>'
+    elif h == "galea":  # 로마 갈레아(임페리얼 갈릭형): 둥근 쇠 사발 + 이마 턱 + 넓은 목 가리개 + 볼 가리개(얼굴 옆) + 붉은 깃털 볏
+        s += f'<path d="M 176 382 C 168 420 172 460 188 474 L 214 466 L 210 380 Z" fill="{col}"/><path d="M 424 382 C 432 420 428 460 412 474 L 386 466 L 390 380 Z" fill="{col}"/>'
+        s += '<path d="M 300 296 C 258 280 250 222 266 196 C 280 176 320 176 334 196 C 350 222 342 280 300 296 Z" fill="#a8332a"/>'
+        s += '<path d="M 282 206 C 278 236 284 262 292 282 M 300 188 L 300 290 M 318 206 C 322 236 316 262 308 282" fill="none" stroke="#6e1f18" stroke-width="3"/>'
+        s += f'<path d="M 192 366 C 186 256 414 256 408 366 Z" fill="{col}"/>'
+        s += f'<path d="M 184 358 C 220 346 380 346 416 358 L 416 376 C 380 366 220 366 184 376 Z" fill="{t}"/>'
+    elif h == "achaemenid_band":  # 페르시아 불사부대: 머리 위 꼰 머리띠 (수사 궁전 유약 벽돌 궁수 행렬)
+        hair = c.get("hair", "#1a120c")
+        s += f'<path d="M 186 384 C 176 270 424 270 414 384 C 392 336 352 322 300 330 C 248 322 208 336 186 384 Z" fill="{hair}"/>'
+        for x in range(206, 400, 24):  # 곱슬 머리 끝
+            s += f'<circle cx="{x}" cy="{352 if 230 < x < 370 else 366}" r="11" fill="{hair}"/>'
+        s += f'<path d="M 188 340 C 230 320 370 320 412 340 L 412 358 C 370 338 230 338 188 358 Z" fill="{col}"/>'
+        s += f'<path d="M 200 344 l 16 -10 M 236 336 l 16 -8 M 272 332 l 16 -6 M 308 332 l 16 -4 M 344 334 l 16 0 M 380 340 l 14 4" fill="none" stroke="{shade(col, 0.6)}" stroke-width="4"/>'
+    elif h == "crown":  # (옛 설계용) 단순한 금 띠 관
+        s += f'<path d="M 204 362 L 204 300 L 252 330 L 300 290 L 348 330 L 396 300 L 396 362 Z" fill="{col}"/>'
+    elif h == "hood":
+        s += f'<path d="M 170 420 C 150 250 450 250 430 420 C 420 340 380 310 300 308 C 220 310 180 340 170 420 Z" fill="{col}"/>'
+    else:  # 모자 없음: 머리카락
+        hair = c.get("hair", "#2a2018")
+        if c.get("hair_style") == "braids":  # 정수리를 민 몽골 머리 + 앞머리 한 줌
+            s += f'<path d="M 194 360 C 200 286 400 286 406 360 C 380 330 220 330 194 360 Z" fill="{shade(c["skin"], 0.82)}"/>'
+            s += f'<path d="M 286 312 C 292 336 308 336 314 312 L 310 352 L 290 352 Z" fill="{hair}"/>'
+        else:
+            s += f'<path d="M 186 384 C 176 270 424 270 414 384 C 392 336 352 322 300 330 C 248 322 208 336 186 384 Z" fill="{hair}"/>'
+    return s
 
 
-def eyes_layer(c, closed, view, expr):
-    if closed or expr == "happy":  # 기쁨은 눈웃음(∩)
-        d = "M 218 288 Q 242 266 266 288 M 334 288 Q 358 266 382 288" if expr == "happy" and not closed else "M 218 284 Q 242 296 266 284 M 334 284 Q 358 296 382 284"
-        return svg(feat(view, f'<path d="{d}" fill="none" stroke-width="7"/>'))
-    col = c.get("eye_color", "#2b1d14")
-    if expr == "shocked":  # 동그랗게 커진 눈 + 작은 눈동자
-        return svg(feat(view, "".join(
-            f'<circle cx="{x}" cy="280" r="22" fill="#fbf4e4"/><circle cx="{x}" cy="281" r="6" fill="{col}" stroke="none"/>' for x in (242, 358)
-        )))
-    ry = {"narrow": 11, "round": 18}.get(c.get("eyes", "almond"), 16)
-    out = "".join(
-        f'<path d="M {x - 26} 282 Q {x} {282 - ry * 1.6} {x + 26} 282 Q {x} {282 + ry * 0.9} {x - 26} 282 Z" fill="#fbf4e4"/>'
-        f'<circle cx="{x + 3}" cy="{282 - ry * 0.25}" r="{ry * 0.75}" fill="{col}" stroke="none"/>'
-        f'<circle cx="{x + 7}" cy="{282 - ry * 0.55}" r="3.5" fill="#fff" stroke="none"/>'
-        for x in (242, 358)
-    )
-    skin = c["skin"]
-    if expr == "angry":  # 위 눈꺼풀이 안쪽으로 내려옴
-        out += f'<path d="M 212 262 L 272 262 L 272 284 Q 250 270 214 268 Z M 388 262 L 328 262 L 328 284 Q 350 270 386 268 Z" fill="{skin}" stroke="none"/>'
-        out += '<path d="M 214 268 Q 250 270 270 282 M 386 268 Q 350 270 330 282" fill="none" stroke-width="6"/>'
-    if expr == "sad":  # 바깥으로 처진 눈꺼풀
-        out += f'<path d="M 212 260 L 272 260 L 270 270 Q 240 266 214 282 Z M 388 260 L 328 260 L 330 270 Q 360 266 386 282 Z" fill="{skin}" stroke="none"/>'
-        out += '<path d="M 214 282 Q 240 266 270 270 M 386 282 Q 360 266 330 270" fill="none" stroke-width="6"/>'
-    return svg(feat(view, out))
+# ---------- 얼굴 ----------
+EYE_L, EYE_R, EYE_Y = 254, 346, 418
+BROW_Y = 382
+# 눈썹 (바깥 x, 바깥 y, 안쪽 x, 안쪽 y) - 눈 x 기준, 왼눈 (오른눈은 좌우 뒤집음)
+BROWS = {
+    "neutral": (-34, 4, 26, -2),
+    "stern": (-34, -2, 24, 7),
+    "angry": (-34, -8, 22, 10),
+    "shocked": (-30, -12, 30, -18),
+    "happy": (-32, -6, 30, -8),
+    "sad": (-30, 8, 26, -12),
+    "worried": (-32, 5, 26, -9),
+    "smug": (-32, 0, 28, -10),
+}
+MOOD_BROW = {"calm": "neutral", "stern": "stern", "angry": "stern", "worried": "worried", "smug": "neutral"}
+HAT_TOP = {"rus_helmet": 166, "boqta": 136, "helmet": 190, "cuman": 176, "fur_peak": 196, "turban_helmet": 168, "georgian_crown": 262,
+           "khan": 244, "fur": 232, "fur_flaps": 262, "turban": 262, "crown_cap": 262, "scarf": 280}
 
 
-def mouth_layer(level, c, view, expr):
-    lip = shade(c["skin"], 0.62)
+def brows(c, expr):
+    shape = MOOD_BROW.get(c.get("mood", "calm"), "neutral") if expr == "neutral" else expr
+    x0, y0, x1, y1 = BROWS[shape]
+    thin = c.get("sex") == "f"
+    s = ""
+    for x, sgn in ((EYE_L, 1), (EYE_R, -1)):
+        a, b = (x + sgn * x0, BROW_Y + y0), (x + sgn * x1, BROW_Y + y1)
+        if expr == "smug" and sgn < 0:  # 한쪽 눈썹만 치켜 올림
+            a, b = (x - x0, BROW_Y - 14), (x - x1, BROW_Y - 4)
+        s += f'<path d="M {a[0]} {a[1]} L {b[0]} {b[1]}" stroke="{INK}" stroke-width="{10 if thin else 15}"/>'
+        s += f'<path d="M {a[0]} {a[1]} L {b[0]} {b[1]}" stroke="{c["brow"]}" stroke-width="{4 if thin else 6}"/>'
+    return s
+
+
+def eyes(c, expr, closed):
+    s = ""
+    col = c.get("eye_color", INK)
+    if expr == "happy":  # 눈웃음(∩) - 감아도 같음
+        return "".join(f'<path d="M {x-14} {EYE_Y+4} Q {x} {EYE_Y-14} {x+14} {EYE_Y+4}" fill="none" stroke-width="7"/>' for x in (EYE_L, EYE_R))
+    if closed:
+        return "".join(f'<path d="M {x-14} {EYE_Y} Q {x} {EYE_Y+9} {x+14} {EYE_Y}" fill="none" stroke-width="6"/>' for x in (EYE_L, EYE_R))
     if expr == "shocked":
-        ry = (12, 17, 24)[level]
-        return svg(feat(view, f'<ellipse cx="300" cy="{372 + ry * 0.3}" rx="{10 + level * 3}" ry="{ry}" fill="#5a1f19"/>'))
-    if level == 0:
-        d = {"angry": "M 276 378 Q 300 364 324 378", "sad": "M 278 380 Q 300 366 322 380", "happy": "M 268 364 Q 300 394 332 364"}.get(expr, "M 278 372 Q 300 380 322 370")
-        return svg(feat(view, f'<path d="{d}" fill="none" stroke-width="6"/>'))
-    h = (14 if level == 1 else 30) + (8 if expr == "angry" else 0)
-    w = 30 if expr in ("angry", "happy") else 24
-    top = 364 if expr == "happy" else 368
-    teeth = f'<path d="M {300 - w + 6} {top + 3} L {300 + w - 6} {top + 3} L {300 + w - 9} {top + 10} L {300 - w + 9} {top + 10} Z" fill="#fbf4e4" stroke="none"/>' if expr in ("angry", "happy") else ""
-    return svg(feat(view,
-        f'<path d="M {300 - w} {top} Q 300 {top - 6} {300 + w} {top} Q {300 + w * 0.75} {top + h} 300 {top + 2 + h} Q {300 - w * 0.75} {top + h} {300 - w} {top} Z" fill="#5a1f19"/>'
-        + teeth
-        + f'<path d="M 286 {top - 6 + h} Q 300 {top - 12 + h * 0.8} 314 {top - 6 + h}" fill="#c5534a" stroke="none"/>'
-        f'<path d="M {300 - w} {top} Q 300 {top - 6} {300 + w} {top}" fill="none" stroke="{lip}" stroke-width="3"/>'
-    ))
+        return "".join(f'<ellipse cx="{x}" cy="{EYE_Y}" rx="19" ry="23" fill="#f6efe0" stroke-width="5"/><circle cx="{x}" cy="{EYE_Y+2}" r="6" fill="{col}" stroke="none"/>' for x in (EYE_L, EYE_R))
+    if expr == "smug":  # 반쯤 감은 눈
+        return "".join(f'<circle cx="{x}" cy="{EYE_Y+2}" r="10" fill="{col}" stroke="none"/><path d="M {x-16} {EYE_Y-3} L {x+16} {EYE_Y-3}" stroke="{c["skin"]}" stroke-width="10"/>'
+                       f'<path d="M {x-16} {EYE_Y-3} L {x+16} {EYE_Y-3}" stroke-width="5"/>' for x in (EYE_L, EYE_R))
+    rx, ry = {"narrow": (9, 11), "round": (11, 14)}.get(c.get("eyes"), (10, 13))
+    if c.get("age") == "child":
+        rx, ry = rx + 2, ry + 2
+    if expr == "sad":
+        ry -= 2
+    for k, x in enumerate((EYE_L, EYE_R)):
+        s += f'<ellipse cx="{x}" cy="{EYE_Y}" rx="{rx}" ry="{ry}" fill="{col}" stroke="none"/><circle cx="{x+3}" cy="{EYE_Y-4}" r="3" fill="#fff" stroke="none"/>'
+        if c.get("sex") == "f":  # 바깥 눈꼬리 속눈썹
+            sgn = -1 if k == 0 else 1
+            s += f'<path d="M {x + sgn*(rx-1)} {EYE_Y-ry+5} l {sgn*8} -6" fill="none" stroke-width="4"/>'
+    if expr == "sad":  # 눈물
+        s += f'<path d="M {EYE_R+6} {EYE_Y+18} Q {EYE_R-2} {EYE_Y+36} {EYE_R+6} {EYE_Y+44} Q {EYE_R+14} {EYE_Y+36} {EYE_R+6} {EYE_Y+18} Z" fill="#8cc4e8" stroke="#3a6a8a" stroke-width="3"/>'
+    return s
 
 
+def beard_col(c):
+    return c.get("beard_color", c.get("hair", "#2a2018"))
+
+
+def beard_chin(c):
+    """턱수염 (머리 겹 - 입 아래에 깔림)"""
+    b, col = c.get("beard", "none"), beard_col(c)
+    my = 478
+    if b == "mustache":  # 아래턱의 가는 수염 (칸 초상)
+        return f'<path d="M 300 {my+24} C 290 {my+44} 296 {my+60} 306 {my+66} C 310 {my+50} 312 {my+38} 304 {my+24} Z" fill="{col}"/>'
+    if b == "thin":
+        return f'<path d="M 300 {my+28} l 0 18" stroke="{col}" stroke-width="9"/>'
+    if b == "goatee":
+        return f'<path d="M 282 504 C 286 534 300 548 304 552 C 312 536 318 520 318 504 C 306 510 294 510 282 504 Z" fill="{col}"/>'
+    if b == "short":
+        return f'<path d="M 200 440 C 204 500 250 532 300 534 C 350 532 396 500 400 440 C 380 488 340 496 300 496 C 260 496 220 488 200 440 Z" fill="{col}"/>'
+    if b in ("full", "rus_full"):  # 턱을 덮는 둥근 수염
+        return f'<path d="M 196 430 C 200 520 250 560 300 560 C 350 560 400 520 404 430 C 380 480 340 470 300 470 C 260 470 220 480 196 430 Z" fill="{col}"/>'
+    if b == "long":  # 가슴까지 내려오는 긴 수염 (노인)
+        return (f'<path d="M 196 430 C 200 530 252 600 300 646 C 348 600 400 530 404 430 C 380 480 340 470 300 470 C 260 470 220 480 196 430 Z" fill="{col}"/>'
+                f'<path d="M 262 530 C 272 570 284 600 296 626 M 338 530 C 328 570 316 600 304 626" fill="none" stroke="{shade(col, 0.75)}" stroke-width="3"/>')
+    return ""
+
+
+def mustache(c):
+    """콧수염 (입 겹 - 입 위에 덮임)"""
+    b, col = c.get("beard", "none"), beard_col(c)
+    if b == "thin":
+        return f'<path d="M 274 466 C 286 458 314 458 326 466" fill="none" stroke="{col}" stroke-width="6"/>'
+    drop = {"mustache": 38, "droop": 74, "short": 14, "full": 14, "rus_full": 14, "long": 22}.get(b)
+    if drop is None:
+        return ""
+    return (f'<path d="M 300 458 C 276 452 254 462 248 {470+drop} C 262 {476+drop/2} 270 470 300 468 '
+            f'C 330 470 338 {476+drop/2} 352 {470+drop} C 346 462 324 452 300 458 Z" fill="{col}"/>')
+
+
+MY = 478
+REST = {  # 쉴 때 입 (표정별)
+    "neutral": f'<path d="M 280 {MY} Q 300 {MY+4} 320 {MY}" fill="none" stroke-width="6"/>',
+    "angry": f'<path d="M 270 {MY+8} Q 300 {MY-12} 330 {MY+8} Q 300 {MY} 270 {MY+8} Z" fill="#6b2a22" stroke-width="5"/><path d="M 278 {MY+2} L 322 {MY+2}" stroke="#f6efe0" stroke-width="5"/>',
+    "shocked": f'<ellipse cx="300" cy="{MY+6}" rx="18" ry="24" fill="#6b2a22" stroke-width="6"/>',
+    "happy": f'<path d="M 266 {MY-6} Q 300 {MY+40} 334 {MY-6} Z" fill="#6b2a22" stroke-width="6"/><path d="M 280 {MY+16} Q 300 {MY+26} 320 {MY+16}" fill="none" stroke="#d9786a" stroke-width="7"/>',
+    "smug": f'<path d="M 276 {MY+4} Q 304 {MY+10} 330 {MY-10}" fill="none" stroke-width="6"/>',
+    "sad": f'<path d="M 278 {MY+10} Q 300 {MY-6} 322 {MY+10}" fill="none" stroke-width="6"/>',
+}
 # 발음 입 모양 9개 (Rhubarb Lip Sync 기호, 2026-10-21): 목소리를 음소로 풀어 프레임마다 고른다
 #   X 쉼 · A 입술 닫힘(ㅁ·ㅂ·ㅍ, M·B·P) · B 살짝 벌림(대부분 자음) · C 벌림(에·애) · D 크게(아)
 #   E 둥글게(오·어) · F 오므림(우·W) · G 윗니가 아랫입술(F·V) · H 혀 올림(L)
 VISEMES = "XABCDEFGH"
 
 
-def viseme_layer(code, c, view, expr):
+def viseme(code, c, expr):
     if code == "X":
-        return mouth_layer(0, c, view, expr)
+        return REST[expr]
     if expr == "shocked":  # 놀람은 모양과 상관없이 둥근 입, 크기만 따라감
-        ry = {"A": 10, "B": 13, "F": 12, "G": 13}.get(code, 20)
-        return svg(feat(view, f'<ellipse cx="300" cy="{372 + ry * 0.3}" rx="{12 + ry * 0.2}" ry="{ry}" fill="#5a1f19"/>'))
+        ry = {"A": 10, "B": 13, "F": 12, "G": 13}.get(code, 22)
+        return f'<ellipse cx="300" cy="{MY + 4}" rx="{12 + ry * 0.25:.1f}" ry="{ry}" fill="#6b2a22" stroke-width="6"/>'
     lip = shade(c["skin"], 0.62)
     up = -6 if expr == "happy" else (3 if expr == "sad" else 0)  # 입꼬리
-    top = 366
-    if code == "A":  # 닫힌 입술: 조금 도톰한 한 줄
-        return svg(feat(view, f'<path d="M 278 {370 + up} Q 300 374 322 {370 + up}" fill="none" stroke-width="7"/>'
-                              f'<path d="M 284 376 Q 300 381 316 376" fill="none" stroke="{lip}" stroke-width="4"/>'))
+    top = MY - 6
+    if code == "A":  # 닫힌 입술: 도톰한 한 줄
+        return (f'<path d="M 278 {MY + up} Q 300 {MY + 4} 322 {MY + up}" fill="none" stroke-width="7"/>'
+                f'<path d="M 284 {MY + 7} Q 300 {MY + 12} 316 {MY + 7}" fill="none" stroke="{lip}" stroke-width="4"/>')
     # 모양별 (반너비, 높이, 윗니, 아랫니, 혀, 둥글기)
-    w, h, teeth_t, teeth_b, tongue, rnd = {
+    w, h, tt, tb, tongue, rnd = {
         "B": (22, 9, True, True, False, 0),
         "C": (26, 18, True, False, False, 0),
         "D": (28, 32, True, False, True, 0),
@@ -531,115 +649,159 @@ def viseme_layer(code, c, view, expr):
         "H": (24, 22, True, False, True, 0),
     }[code]
     if expr == "angry":
-        w, teeth_b = w + 4, True
+        w, tb = w + 4, True
+    if expr == "happy" and not rnd:
+        w += 4
     cy = top + h / 2
-    if rnd:  # 둥근 입은 타원 + 두꺼운 입술 테
-        body = f'<ellipse cx="300" cy="{cy}" rx="{w}" ry="{h / 2 + 2}" fill="#5a1f19"/><ellipse cx="300" cy="{cy}" rx="{w + 5}" ry="{h / 2 + 6}" fill="none" stroke="{lip}" stroke-width="5"/>'
+    if rnd:
+        s = f'<ellipse cx="300" cy="{cy}" rx="{w}" ry="{h / 2 + 2}" fill="#6b2a22" stroke-width="6"/>'
     else:
-        body = f'<path d="M {300 - w} {top + up} Q 300 {top - 6} {300 + w} {top + up} Q {300 + w * 0.75} {top + h} 300 {top + 2 + h} Q {300 - w * 0.75} {top + h} {300 - w} {top + up} Z" fill="#5a1f19"/>'
+        s = f'<path d="M {300 - w} {top + up} Q 300 {top - 4} {300 + w} {top + up} Q {300 + w * 0.75} {top + h} 300 {top + 2 + h} Q {300 - w * 0.75} {top + h} {300 - w} {top + up} Z" fill="#6b2a22" stroke-width="5"/>'
     if tongue:
-        body += f'<ellipse cx="300" cy="{top + h * 0.8}" rx="{w * 0.55}" ry="{max(4, h * 0.22)}" fill="#c5534a" stroke="none"/>'
-    if teeth_t:
-        body += f'<path d="M {300 - w + 6} {top + 1} L {300 + w - 6} {top + 1} L {300 + w - 8} {top + min(8, h * 0.45)} L {300 - w + 8} {top + min(8, h * 0.45)} Z" fill="#fbf4e4" stroke="none"/>'
-    if teeth_b:
-        body += f'<path d="M {300 - w + 9} {top + h - 4} L {300 + w - 9} {top + h - 4} L {300 + w - 11} {top + h} L {300 - w + 11} {top + h} Z" fill="#fbf4e4" stroke="none"/>'
+        s += f'<ellipse cx="300" cy="{top + h * 0.8:.1f}" rx="{w * 0.5:.1f}" ry="{max(4, h * 0.2):.1f}" fill="#d9786a" stroke="none"/>'
+    if tt:
+        s += f'<path d="M {300 - w + 7} {top + 2} L {300 + w - 7} {top + 2} L {300 + w - 9} {top + min(8, h * 0.45):.1f} L {300 - w + 9} {top + min(8, h * 0.45):.1f} Z" fill="#f6efe0" stroke="none"/>'
+    if tb:
+        s += f'<path d="M {300 - w + 10} {top + h - 4} L {300 + w - 10} {top + h - 4} L {300 + w - 12} {top + h} L {300 - w + 12} {top + h} Z" fill="#f6efe0" stroke="none"/>'
     if code == "G":  # 아랫입술을 윗니가 문다
-        body += f'<path d="M {300 - w + 2} {top + h} Q 300 {top + h + 8} {300 + w - 2} {top + h}" fill="none" stroke="{lip}" stroke-width="6"/>'
-    if not rnd:
-        body += f'<path d="M {300 - w} {top + up} Q 300 {top - 6} {300 + w} {top + up}" fill="none" stroke="{lip}" stroke-width="3"/>'
-    return svg(feat(view, body))
+        s += f'<path d="M {300 - w + 2} {top + h} Q 300 {top + h + 8} {300 + w - 2} {top + h}" fill="none" stroke="{lip}" stroke-width="6"/>'
+    return s
 
 
-# ---------- 팔·손짓 (2026-10-21) ----------
-# 상반신 그림이라 팔은 화면 아래에서 올라오는 겹 하나(arm_<손짓>.svg). 장면표 "gesture"로 고르면 영상에서 스프링으로 올라온다
-#   point 가리킴 · fist 주먹 · open 두 손을 펼침(설명·하소연)
-GESTURES = ("point", "fist", "open")
+def head_layer(c, view, expr):
+    skin = c["skin"]
+    s = hat_back(c, view) + hair_back(c, view) + ears(c, view)
+    s += f'<path d="{FACES.get(c.get("face"), FACES["oval"])}" fill="{skin}"/>'
+    s += f'<path d="M 196 420 C 204 470 240 504 284 512 C 236 512 194 478 192 420 Z" fill="{shade(skin, 0.86)}" stroke="none"/>'
+    ft = "".join(f'<ellipse cx="{300 + sgn*70}" cy="452" rx="20" ry="11" fill="#d98a72" opacity="{0.7 if c.get("sex") == "f" else 0.55}" stroke="none"/>' for sgn in (-1, 1))
+    if c.get("age") == "old":
+        ft += '<path d="M 222 440 q 12 8 26 4 M 352 444 q 14 4 26 -4 M 262 352 q 38 -8 76 0" fill="none" stroke-width="4" opacity="0.6"/>'
+    if c.get("scar"):
+        ft += '<path d="M 360 372 C 366 392 370 414 368 440" fill="none" stroke="#9a4a3a" stroke-width="5"/>'
+    if view == "side":
+        ft += '<path d="M 300 428 C 318 444 318 452 302 456" fill="none" stroke-width="5"/>'
+    else:
+        ft += '<path d="M 298 430 C 292 446 296 452 306 452" fill="none" stroke-width="5"/>'
+    ft += beard_chin(c)
+    s += feat(view, ft)
+    hs = hat(c)
+    s += f'<g transform="translate(12 0)">{hs}</g>' if view == "side" else hs
+    if c.get("hat") == "rus_helmet":  # 코 가리개는 이목구비와 같이 움직임
+        s += feat(view, f'<path d="M 290 378 L 310 378 L 308 452 L 292 452 Z" fill="{c.get("hat_color", "#9aa2a6")}"/>')
+    s += feat(view, brows(c, expr))
+    top = HAT_TOP.get(c.get("hat"), 280)
+    if expr == "shocked":
+        s += f'<path d="M 166 {top + 60} l -24 -24 M 434 {top + 60} l 24 -24 M 300 {top - 14} l 0 -34" fill="none" stroke-width="7"/>'
+    if expr == "angry":
+        s += '<path d="M 452 330 l 30 -10 M 456 360 l 34 4 M 148 330 l -30 -10" fill="none" stroke="#a8332a" stroke-width="7"/>'
+    return s
 
 
-def hand(kind, skin):
-    """손목이 (0,0), 손끝이 위(-y)인 손 하나"""
-    dk = shade(skin, 0.82)
-    if kind == "palm":
-        fingers = "".join(f'<rect x="{x - 8}" y="{top}" width="16" height="{-top - 52}" rx="8" fill="{skin}" stroke-width="5"/>'
-                          for x, top in ((-24, -122), (-8, -136), (8, -132), (24, -116)))
-        thumb = f'<path d="M -28 -22 C -48 -34 -68 -58 -64 -74 C -58 -86 -44 -78 -26 -56 Z" fill="{skin}" stroke-width="5"/>'
-        return (fingers + thumb
-                + f'<path d="M -34 -70 C -36 -40 -30 -6 0 2 C 30 -6 36 -40 34 -70 C 20 -78 -20 -78 -34 -70 Z" fill="{skin}" stroke-width="5"/>'
-                + f'<path d="M -14 -40 Q 0 -28 12 -44" fill="none" stroke="{dk}" stroke-width="4"/>')
-    # 앞에서 본 주먹: 손바닥 덩어리 + 말아 쥔 손가락 네 마디(위) + 가로지르는 엄지
-    point = kind == "point"
-    palm = f'<path d="M -36 -58 C -38 -30 -32 -4 0 0 C 32 -4 38 -30 36 -58 Z" fill="{skin}" stroke-width="5"/>'
-    knuck = "".join(f'<rect x="{x}" y="-88" width="19" height="40" rx="9.5" fill="{skin}" stroke-width="5"/>'
-                    for i, x in enumerate((-38, -19, 0, 19)) if not (point and i == 0))
-    index = '<rect x="-38" y="-168" width="21" height="120" rx="10.5" fill="{}" stroke-width="5"/>'.format(skin) if point else ""
-    thumb = f'<path d="M -40 -50 C -40 -60 -30 -62 -20 -60 L 14 -54 C 24 -52 24 -38 14 -36 L -24 -34 C -36 -34 -40 -40 -40 -50 Z" fill="{skin}" stroke-width="5"/>'
-    shade_ = f'<path d="M 22 -30 C 30 -24 30 -10 18 -4" fill="none" stroke="{dk}" stroke-width="4"/>'
-    return index + palm + knuck + thumb + shade_
+# ---------- 포즈 ----------
+# 장면표 "pose"로 고른다 (없으면 front). arms = (화면 왼쪽 팔, 화면 오른쪽 팔) 또는 "crossed"(팔짱)
+POSES = {
+    "front": ("front", "neutral", ("down", "down")),
+    "side": ("side", "neutral", ("down", "down")),  # 3/4 옆모습, 오른쪽을 봄 (왼쪽은 영상에서 뒤집기 facing: "left")
+    "angry": ("front", "angry", ("down", "fist_up")),
+    "shocked": ("front", "shocked", ("hands_up", "hands_up")),
+    "sad": ("front", "sad", ("limp", "limp")),
+    "happy": ("front", "happy", ("hip", "wave")),
+    "smug": ("front", "smug", "crossed"),  # 거만: 팔짱 + 반쯤 감은 눈 + 한쪽 눈썹 (2026-10-26)
+}
+# 손짓 (장면표 "gesture"): 영상에서 그 팔이 어깨를 중심으로 휘둘러 올라온다. 값 = (왼팔, 오른팔), None = 그 팔은 포즈 그대로
+GESTURES = {"point": (None, "point"), "fist": (None, "fist_up"), "open": ("open", "open")}
 
 
-def arm(c, x0, y0, x1, y1, rot_extra, kind, mirror=False, w0=70, w1=42):
-    """화면 아래 (x0,y0)에서 손목 (x1,y1)까지 소매 + 손"""
-    import math
-
-    cloth = c.get("sleeve", c.get("cloth", "#8b3a2b"))
-    trim = c.get("cuff", c.get("trim", "#d9b45a"))
-    dx, dy = x1 - x0, y1 - y0
-    L = math.hypot(dx, dy)
-    nx, ny = -dy / L, dx / L  # 팔 방향에 수직
-    a = math.degrees(math.atan2(dx, -dy))
-    p = lambda x, y, w: f"{x + nx * w:.1f} {y + ny * w:.1f}"  # noqa: E731
-    mx, my = x0 + dx * 0.5, y0 + dy * 0.5
-    sl = (f'<path d="M {p(x0, y0, -w0)} Q {p(mx, my, -(w0 + w1) / 2 - 8)} {p(x1, y1, -w1)} L {p(x1, y1, w1)} Q {p(mx, my, (w0 + w1) / 2 + 8)} {p(x0, y0, w0)} Z" fill="{cloth}"/>'
-          f'<path d="M {p(x0, y0, w0 * 0.55)} Q {p(mx, my, (w0 + w1) / 2 * 0.55)} {p(x1, y1, w1 * 0.5)} L {p(x1, y1, w1 * 0.9)} Q {p(mx, my, (w0 + w1) / 2 + 2)} {p(x0, y0, w0 * 0.95)} Z" fill="{shade(cloth, 0.75)}" stroke="none"/>')
-    cuff = f'<rect x="{-w1 - 6}" y="-10" width="{2 * w1 + 12}" height="24" rx="10" fill="{trim}" stroke-width="5" transform="translate({x1} {y1}) rotate({a:.1f})"/>'
-    flip = " scale(-1 1)" if mirror else ""
-    h = f'<g transform="translate({x1 + dx / L * 8:.1f} {y1 + dy / L * 8:.1f}) rotate({a + rot_extra:.1f}){flip} scale(1.22)">{hand(kind, c["skin"])}</g>'
-    return h + sl + cuff
-
-
-def arms_layer(c, view, gesture):
-    s = 22 if view == "side" else 0  # 옆모습은 손을 더 앞(오른쪽)으로
-    if gesture == "point":
-        # 손끝이 판(600×720) 밖으로 나가지 않게: 정면은 오른쪽 위, 옆모습은 앞쪽 비스듬히
-        return svg(arm(c, 400, 790, 450, 560, 30, "point") if view == "side" else arm(c, 396, 790, 462, 524, 16, "point"))
-    if gesture == "fist":
-        return svg(arm(c, 400 + s, 790, 404 + s, 572, -6, "fist"))
-    if gesture == "open":
-        return svg(arm(c, 140 + s, 790, 150 + s, 592, -30, "palm", mirror=True) + arm(c, 460 + s, 790, 450 + s, 592, 30, "palm"))
-    return svg("")
+def pose_layers(c, pose):
+    f = Fig(c)
+    view, expr, arms = POSES[pose]
+    core = f.body_g(back_layer(c) + boots(c) + torso(c))
+    if arms == "crossed":
+        rest = crossed_arms(f)
+        rest_l, rest_r = arm(f, "down", False), None
+    else:
+        rest_l, rest_r = arm(f, arms[0], False), arm(f, arms[1], True)
+        rest = rest_l + rest_r
+    out = {"body": core + rest}
+    for g, (gl, gr) in GESTURES.items():
+        keep = "" if gl else rest_l
+        out[f"body_{g}"] = core + keep
+        out[f"arm_{g}"] = (arm(f, gl, False) if gl else "") + arm(f, gr, True)
+    out["head"] = f.head_g(head_layer(c, view, expr))
+    out["eyes0"] = f.head_g(feat(view, eyes(c, expr, False)))
+    out["eyes1"] = f.head_g(feat(view, eyes(c, expr, True)))
+    for v in VISEMES:
+        out[f"mouth{v}"] = f.head_g(feat(view, viseme(v, c, expr) + mustache(c)))
+    for k, v in enumerate("XCD"):  # 예전 크기 방식 0·1·2
+        out[f"mouth{k}"] = out[f"mouth{v}"]
+    return out
 
 
-def body_for(c, view):
-    b = body_layer(c)
-    # 옆모습은 몸을 살짝 돌린 느낌으로 (가로 0.94배, 오른쪽으로)
-    return b.replace('<g stroke=', f'<g transform="matrix(0.94 0 0 1 30 0)" stroke=', 1) if view == "side" else b
+def rig(c):
+    f = Fig(c)
+    r = lambda p: [round(v, 1) for v in board(*p)]  # noqa: E731
+    return {"neck": r((f.nx, f.ny)), "shoulderR": r(f.T(386, 548)), "shoulderL": r(f.T(214, 548)), "top": round(board(0, f.Hd(300, HAT_TOP.get(c.get("hat"), 280))[1])[1], 1)}
+
+
+def variants(spec):
+    """(폴더 이름, 그리기 값) - 인물 기본 + stages마다 <id>_<단계>"""
+    for cid, c in spec.items():
+        yield cid, resolve(c)
+        for st, over in (c.get("stages") or {}).items():
+            o = {k: v for k, v in over.items() if k not in ("speakers", "basis")}
+            body = {**(c.get("body") or {}), **{k: o.pop(k) for k in ("height", "build") if k in o}}
+            yield f"{cid}_{st}", resolve({**c, **o, "body": body})
 
 
 def build(ids=None):
     import shutil
 
     spec = json.loads(SPEC.read_text())["characters"]
-    for cid, c in spec.items():
-        if ids and cid not in ids:
+    rigs = json.loads(RIG.read_text()) if RIG.exists() else {}
+    for vid, c in variants(spec):
+        if ids and vid not in ids and not any(i in spec and vid.startswith(i + "_") and vid[len(i) + 1:] in (spec[i].get("stages") or {}) for i in ids):
             continue
-        d = OUT / cid
+        d = OUT / vid
         if d.exists():
             shutil.rmtree(d)
-        for pose, (view, expr) in POSES.items():
+        for pose in POSES:
             pd = d / pose
             pd.mkdir(parents=True)
-            files = {
-                "body": body_for(c, view),
-                "head": head_layer(c, view, expr),
-                "eyes0": eyes_layer(c, False, view, expr),
-                "eyes1": eyes_layer(c, True, view, expr),
-                **{f"mouth{k}": mouth_layer(k, c, view, expr) for k in range(3)},
-                **{f"mouth{v}": viseme_layer(v, c, view, expr) for v in VISEMES},
-                **{f"arm_{g}": arms_layer(c, view, g) for g in GESTURES},
-            }
-            for name, text in files.items():
-                (pd / f"{name}.svg").write_text(text)
-        print(f"→ public/chars/{cid}/ (포즈 {len(POSES)}개)")
+            for name, inner in pose_layers(c, pose).items():
+                (pd / f"{name}.svg").write_text(svg(c, inner))
+        rigs[vid] = rig(c)
+        print(f"→ public/chars/{vid}/ (포즈 {len(POSES)}개)")
+    RIG.write_text(json.dumps(dict(sorted(rigs.items())), indent=1) + "\n")
+
+
+def sheet(png, ids=None, poses=None, mouths=False, scale=0.5, ground=True):
+    """확인용 한 장: 인물 × 포즈 (또는 한 명의 입 모양 9개). 헤드리스 Chrome으로 찍는다"""
+    import subprocess
+    import tempfile
+
+    spec = json.loads(SPEC.read_text())["characters"]
+    ids = ids or [k for k, _ in variants(spec)]
+    poses = poses or list(POSES)
+    cw, ch = int(W * scale), int(H * scale)
+    rows = []
+    for vid in ids:
+        cells = []
+        items = [(p, "mouthX") for p in poses] if not mouths else [("front", f"mouth{v}") for v in VISEMES]
+        for p, m in items:
+            base = (OUT / vid / p).as_uri()
+            layers = "".join(f'<img src="{base}/{l}.svg">' for l in ("body", "head", "eyes0", m))
+            cells.append(f'<div class="c">{layers}</div>')
+        rows.append(f'<div class="r">{"".join(cells)}</div>')
+    html = (f'<html><body style="margin:0;background:#e9dcc0"><style>.r{{display:flex}}.c{{position:relative;width:{cw}px;height:{ch}px}}'
+            f'.c img{{position:absolute;inset:0;width:100%;height:100%}}</style>{"".join(rows)}</body></html>')
+    with tempfile.TemporaryDirectory() as tmp:
+        hp = Path(tmp) / "sheet.html"
+        hp.write_text(html)
+        n = len(items)
+        subprocess.run([str(tools.chrome()), "--headless=new", "--disable-gpu", "--allow-file-access-from-files", "--hide-scrollbars",
+                        f"--window-size={cw * n},{ch * len(rows)}", f"--screenshot={Path(png).resolve()}", hp.as_uri()],
+                       check=True, capture_output=True)
+    print(f"→ {png}")
 
 
 def needed(ep_path):
@@ -732,4 +894,5 @@ def mouth(ep_path):
 
 if __name__ == "__main__":
     cmd, *args = sys.argv[1:] or ["build"]
-    {"build": lambda: build(args or None), "list": lambda: needed(args[0]), "mouth": lambda: mouth(args[0])}[cmd]()
+    {"build": lambda: build(args or None), "list": lambda: needed(args[0]), "mouth": lambda: mouth(args[0]),
+     "sheet": lambda: sheet(args[0], args[1:] or None)}[cmd]()

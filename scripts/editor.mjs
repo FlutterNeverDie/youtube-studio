@@ -18,7 +18,7 @@ const CODE = fileURLToPath(new URL("..", import.meta.url));
 const PORT = Number(process.env.PORT || 4600);
 const OUT = join(CODE, "out/editor");
 const run = promisify(execFile);
-const HOME = process.env.HWM ?? join(homedir(), "hwm"); // 산출물 폴더 (저장소 위치와 상관없이)
+const HOME = process.env.HWM ?? join(homedir(), "ReStory"); // 산출물 폴더 (저장소 위치와 상관없이)
 // 편의 영상 폴더 (meta.json video 경로의 폴더) + /편집. 없으면 영상/정리 안 됨/<편>/편집
 const editDir = async (e) => {
   epId(e);

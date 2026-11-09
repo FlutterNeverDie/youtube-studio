@@ -19,9 +19,9 @@ ERR_MED, WARN_MED = 6.0, 10.0  # dB - 말하는 동안 여유 중앙값
 HOP = 0.05
 SMOOTH = 6  # 칸 (0.3초) - 귀가 크기를 느끼는 시간
 # Episode.tsx SFX·MOVE·sceneSfx와 같은 규칙 (바꾸면 같이)
-SFX = {"map": ("swish", 0.1), "cutout": ("swish", 0.1), "mapscene": ("swish", 0.1), "cinematic": ("swish", 0.1), "art": ("swish", 0.1), "lapse": ("swish", 0.12),
+SFX = {"map": ("swish", 0.1), "cutout": ("swish", 0.1), "mapscene": ("swish", 0.1), "art": ("swish", 0.1), "lapse": ("swish", 0.12),
        "title": ("boom", 0.55), "stamp": ("impact", 0.6), "line": ("hit", 0.4), "units": ("drum", 0.45)}
-MOVE = {"map", "art", "lapse", "cutout", "mapscene", "cinematic"}
+MOVE = {"map", "art", "lapse", "cutout", "mapscene"}
 BGM_VOL, DUCK = 0.32, 0.3
 
 

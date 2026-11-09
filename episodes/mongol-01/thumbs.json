@@ -1,0 +1,13 @@
+{
+ "look": "red",
+ "map": "clean/mg-wide/1260.png",
+ "face": "art/mongol/genghis-portrait.jpg",
+ "faceFocus": "50% 25%",
+ "variants": [
+  {
+   "en": { "top": "Genghis Khan", "big": "Swallowed the World" },
+   "ko": { "top": "칭기즈칸", "big": "세계를 삼킨 남자" },
+   "es": { "top": "Gengis Kan", "big": "Se tragó el mundo" }
+  }
+ ]
+}

@@ -1,11 +1,11 @@
-# 업로드 정보 만들기: 제목·설명(장 구분 타임스탬프 + 그림 출처)·태그를 언어별로 → uploads/<편>.json + hwm/<meta.folder>/<한글 이름>_업로드 정보.html
+# 업로드 정보 만들기: 제목·설명(장 구분 타임스탬프 + 그림 출처)·태그를 언어별로 → uploads/<편>.json + ~/ReStory/<meta.folder>/<한글 이름>_업로드 정보.html
 # python3 scripts/upload-info.py episodes/mongol-01/meta.json
 import html, json, os, sys
 from pathlib import Path
 
 CODE = Path(__file__).resolve().parent.parent
 LANG_KO = {"ko": "한국어", "es": "스페인어"}  # 업로드 정보에 보이는 언어 이름
-HOME = Path(os.environ.get("HWM", Path.home() / "hwm"))  # 산출물 폴더 (저장소 위치와 상관없이)
+HOME = Path(os.environ.get("HWM", Path.home() / "ReStory"))  # 산출물 폴더 (저장소 위치와 상관없이)
 meta_path = Path(sys.argv[1])
 meta = json.loads(meta_path.read_text())
 ep = meta_path.parent.name

@@ -1,7 +1,7 @@
 # 외부 프로그램 위치 - OS마다(맥·윈도우) 기본 자리, 환경 변수로 덮어쓰기. Node 쪽은 scripts/tools.mjs (같은 규칙)
 #   python3 scripts/tools.py      찾은 위치와 있는지 표 (새 PC 확인용)
 # 쓰는 쪽: sys.path.insert(0, <scripts 폴더>) 후 import tools  (-I로 돌면 스크립트 폴더가 경로에 없어서)
-# 환경 변수: HWM RMW_PYTHON CHROME BLENDER SFIZZ_RENDER RHUBARB FLUIDSYNTH
+# 환경 변수: HWM RMW_PYTHON CHROME SFIZZ_RENDER RHUBARB FLUIDSYNTH
 import os
 import platform
 import shutil
@@ -35,7 +35,7 @@ def _win_roots():
 
 
 def hwm_home():
-    return Path(_env("HWM") or Path.home() / "hwm")  # 산출물 폴더 (저장소 위치와 상관없이)
+    return Path(_env("HWM") or Path.home() / "ReStory")  # 산출물 폴더 (저장소 위치와 상관없이)
 
 
 def python():
@@ -59,24 +59,6 @@ def chrome():
     if MAC:
         return Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     return _first("/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium")
-
-
-def _ver(p):
-    """'Blender 4.5' → (4, 5) - 가장 새 버전 고르기"""
-    return tuple(int(x) for x in "".join(ch if ch.isdigit() else " " for ch in p.parent.name).split())
-
-
-def blender():
-    if _env("BLENDER"):
-        return Path(_env("BLENDER"))
-    if MAC:
-        return Path("/Applications/Blender.app/Contents/MacOS/Blender")
-    if WIN:  # "Blender Foundation/Blender 4.5/blender.exe"처럼 버전 폴더 - 가장 새 것
-        found = [p for r in _win_roots() for p in (r / "Blender Foundation").glob("Blender*/blender.exe")]
-        if found:
-            return max(found, key=_ver)
-        return _which("blender") or Path(_env("ProgramFiles") or "C:/Program Files") / "Blender Foundation/Blender/blender.exe"
-    return _which("blender") or Path("blender")
 
 
 def sfizz_render():
@@ -137,7 +119,7 @@ def sevenzip():
 
 
 if __name__ == "__main__":
-    rows = {"hwm_home": hwm_home(), "python": python(), "node": node(), "remotion": remotion()[1], "chrome": chrome(), "blender": blender(),
+    rows = {"hwm_home": hwm_home(), "python": python(), "node": node(), "remotion": remotion()[1], "chrome": chrome(),
             "sfizz_render": sfizz_render(), "rhubarb": rhubarb(), "fluidsynth": fluidsynth(), "ffmpeg": ffmpeg(), "tar": tar()}
     if WIN:
         rows["7z"] = sevenzip()

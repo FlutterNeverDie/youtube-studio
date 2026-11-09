@@ -21,9 +21,9 @@
 //                                         산꼭대기 만년설은 snowline으로 따로
 //   "relief": 0.8,                        산 음영 세기 0~1. 산 장면은 0.5 안팎(진하면 그늘이 눈·초록을 덮는다), 평야는 0.8~0.9
 //   "snowline": 3400,                     눈선(m). 겨울 장면은 낮춘다
-//   "ground": "palette",                  "palette"(기본 - prep_terrain.py와 같은 식으로 토지 피복을 다시 칠함, 그늘 세피아·볕 크림) | "css"(예전 SVG판 색) | "raw"
-//   "palette": {"steppe","steppe_dry","green","forest","water"}   blender/shots의 palette와 같은 이름·기본값(지도 거리에선 숲을 세이지와 반씩 섞음)
-//   "grade": {"exposure","lift","white","contrast","saturation","vignette","grain","curve"}   blender/post.py와 같은 마감(curve = 필름 곡선 세기 0~1).
+//   "ground": "palette",                  "palette"(기본 - 토지 피복을 다시 칠함, 그늘 세피아·볕 크림) | "css"(예전 SVG판 색) | "raw"
+//   "palette": {"steppe","steppe_dry","green","forest","water"}   기본값(지도 거리에선 숲을 세이지와 반씩 섞음)
+//   "grade": {"exposure","lift","white","contrast","saturation","vignette","grain","curve"}   필름 마감(curve = 필름 곡선 세기 0~1).
 //                                         film 테마면 기본으로 켜지고 null이면 끔. 지금은 땅 층에만(부대·화살표는 7-3·7-4에서)
 //   "unitScale": 1,                       부대 그림 크기 배율(1 = 키 약 22px@1280 폭 = 영상 44px, 원근에 따라 가까우면 크게)
 //   "marks": {"turn": 0.55, "close": 0.72},
