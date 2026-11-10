@@ -1,0 +1,140 @@
+{
+ "_설명": "한국어 원문 → 영어 번역 짝 규칙 (2026-11-10, 몽골 장편: 한국어가 원문). check-lines.py가 씀",
+ "src": "ko",
+ "tgt": "en",
+ "rules": [
+  {
+   "id": "koen-barely",
+   "src": "(제대로|한 번도|거의)[^.?!]*(못|없|않)",
+   "tgt": "\\bbarely\\b",
+   "msg": "\"제대로 ~ 못/없다\"를 barely로 옮기면 \"조금은 했다\"로 뜻이 뒤집힘",
+   "natural": "never really / hardly ever",
+   "bad": [
+    [
+     "성 하나 제대로 공격해 본 적이 없었습니다.",
+     "had barely attacked a single city"
+    ]
+   ],
+   "good": [
+    [
+     "성 하나 제대로 공격해 본 적이 없었습니다.",
+     "had never really attacked a walled city"
+    ]
+   ]
+  },
+  {
+   "id": "koen-todays",
+   "src": "오늘날(의)?",
+   "tgt": "\\btoday's [A-Z]",
+   "msg": "\"오늘날의 X\" 직역 - 영어는 what's now X",
+   "natural": "what's now Uzbekistan",
+   "bad": [
+    [
+     "오늘날의 우즈베키스탄",
+     "today's Uzbekistan"
+    ]
+   ],
+   "good": [
+    [
+     "오늘날의 우즈베키스탄",
+     "what's now Uzbekistan"
+    ]
+   ]
+  },
+  {
+   "id": "koen-side",
+   "src": "[가-힣]+ 측",
+   "tgt": "\\bthe \\w+ side\\b",
+   "msg": "\"~측\" 직역 - the Jin side는 어색",
+   "natural": "the Jin camp / Jin envoys",
+   "bad": [
+    [
+     "금나라 측에서 보낸 사람",
+     "a man sent from the Jin side"
+    ]
+   ],
+   "good": [
+    [
+     "금나라 측에서 보낸 사람",
+     "a man from the Jin camp"
+    ]
+   ]
+  },
+  {
+   "id": "koen-through-mouths",
+   "src": "입을 통해|손을 통해",
+   "tgt": "\\bthrough the (mouths|hands) of\\b",
+   "msg": "\"~의 입을 통해\" 직역",
+   "natural": "Survivors spread the story",
+   "bad": [
+    [
+     "생존자들의 입을 통해 퍼졌습니다",
+     "spread through the mouths of survivors"
+    ]
+   ],
+   "good": [
+    [
+     "생존자들의 입을 통해 퍼졌습니다",
+     "survivors spread the story"
+    ]
+   ]
+  },
+  {
+   "id": "koen-pause-comma",
+   "src": "/",
+   "tgt": "\\b(how|why|what|where|when|who)\\s*,\\s+(did|do|does|was|were|is|are|could|would|can)\\b|\\b\\w+ of the \\w+,\\s+(continues|begins|ends)\\b",
+   "msg": "한국어 숨표(/)를 영어 쉼표로 옮김 - 문법에 없는 쉼표",
+   "natural": "So how did …",
+   "bad": [
+    [
+     "그렇다면 칭기즈칸은 / 어떻게 준비했을까요?",
+     "So how, did Genghis Khan get ready?"
+    ]
+   ],
+   "good": [
+    [
+     "그렇다면 칭기즈칸은 / 어떻게 준비했을까요?",
+     "So how did Genghis Khan get ready?"
+    ]
+   ]
+  },
+  {
+   "id": "koen-by-passive",
+   "src": "(되었|됐|되어|당했|졌습니다|졌다|어졌|려졌)",
+   "tgt": "\\b(was|were)\\s+\\w+(ed|en|wn|t)\\s+by\\b",
+   "msg": "한국어 피동을 영어 by 수동으로 직역 - 능동으로",
+   "natural": "His cousin overthrew the emperor",
+   "bad": [
+    [
+     "황제는 사촌에게 끌어내려졌습니다",
+     "The emperor was overthrown by his cousin"
+    ]
+   ],
+   "good": [
+    [
+     "황제는 사촌에게 끌어내려졌습니다",
+     "His own cousin overthrew the emperor"
+    ]
+   ]
+  },
+  {
+   "id": "koen-place-inversion",
+   "src": "^[가-힣 ]+(에는|엔)\\s",
+   "tgt": "^(Between|At|In|On|Inside|Beyond)\\b[^,.]*\\b(lay|stood|sat|lived)\\b",
+   "msg": "\"~에는 X가 있었다\" 어순 그대로 - 장소 + 동사 + 주어 도치(동화책 말투)",
+   "natural": "A small town sat at the edge of the desert.",
+   "bad": [
+    [
+     "사막 끝에는 작은 마을이 있었습니다",
+     "At the edge of the desert stood a small town."
+    ]
+   ],
+   "good": [
+    [
+     "사막 끝에는 작은 마을이 있었습니다",
+     "A small town sat at the edge of the desert."
+    ]
+   ]
+  }
+ ]
+}

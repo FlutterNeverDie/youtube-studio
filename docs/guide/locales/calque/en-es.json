@@ -1,0 +1,372 @@
+{
+ "_설명": "영어 원문 → 스페인어 번역 짝 규칙 (2026-11-10). 원문(src)과 번역문(tgt)이 같은 묶음에서 둘 다 맞을 때만 걸린다 - 영어 구조를 그대로 옮긴 흔적. 한 줄 규칙은 ../es.rules.json, 사람이 판단할 것은 ../es.md. scripts/check-lines.py가 씀, 시험: check-lines.py --selftest",
+ "src": "en",
+ "tgt": "es",
+ "rules": [
+  {
+   "id": "enes-step-number",
+   "src": "\\bStep (one|two|three|four|five|1|2|3|4|5)\\b",
+   "tgt": "\\bPaso (uno|dos|tres|cuatro|cinco|[1-5])\\b",
+   "msg": "\"Step one:\"을 \"Paso uno:\"로 직역 - 스페인어는 서수로 셈 (Primer paso), 아니면 Primero · Después · Por último",
+   "natural": "Primer paso · Segundo paso · Tercer paso / Primero, ~ Después, ~",
+   "bad": [
+    [
+     "Step one: find a guide.",
+     "Paso uno: conseguir un guía."
+    ]
+   ],
+   "good": [
+    [
+     "Step one: find a guide.",
+     "Primer paso: conseguir un guía."
+    ],
+    [
+     "Step two: split up.",
+     "Lo segundo, dividirse."
+    ]
+   ]
+  },
+  {
+   "id": "enes-one-two-colon",
+   "src": "(^|[.?!]\\s+)(One|Two|Three|Four|Five):",
+   "tgt": "(^|[.?!]\\s+)(Uno|Una|Dos|Tres|Cuatro|Cinco)\\s*:",
+   "msg": "\"One: / Two:\" 목록 머리를 \"Una: / Dos:\"로 직역 - 스페인어 말로는 La primera · La segunda (razón) 또는 Primero · Además",
+   "natural": "La primera: ~ / La segunda: ~",
+   "bad": [
+    [
+     "One: the Jin had backed the Tatars.",
+     "Una: los Jin habían apoyado a los tártaros."
+    ],
+    [
+     "Two: the Jin had captured one of his ancestors.",
+     "Dos: los Jin habían capturado a uno de sus antepasados."
+    ]
+   ],
+   "good": [
+    [
+     "One: the Jin had backed the Tatars.",
+     "La primera: los Jin habían apoyado a los tártaros."
+    ],
+    [
+     "Two days later, it fell.",
+     "Dos días después, cayó."
+    ]
+   ]
+  },
+  {
+   "id": "enes-had-history",
+   "src": "\\b(have|has|had|having) (a |some )?(long |bad )?history\\b",
+   "tgt": "(?i)\\b(tenían|tenía|tienen|tiene|tener|teníamos) (una )?(larga |mala )?historia\\b(?! de)",
+   "msg": "\"had history\"(사이가 안 좋았다)를 \"tenían historia\"로 직역 - 스페인어로는 '역사가 있다'로만 들림",
+   "natural": "tenían cuentas pendientes / ya se conocían de antes",
+   "bad": [
+    [
+     "These two had history, you see.",
+     "Es que estos dos tenían historia."
+    ]
+   ],
+   "good": [
+    [
+     "These two had history, you see.",
+     "Es que estos dos tenían cuentas pendientes."
+    ],
+    [
+     "Both cities had a long history of trade.",
+     "Las dos ciudades tenían historia de siglos."
+    ]
+   ]
+  },
+  {
+   "id": "enes-main-force",
+   "src": "\\bmain (force|body)\\b",
+   "tgt": "(?i)\\bfuerza principal\\b",
+   "msg": "\"main force\"를 \"fuerza principal\"로 직역 - 스페인어 군사 관용은 el grueso (del ejército)",
+   "natural": "el grueso del ejército",
+   "bad": [
+    [
+     "His main force headed for the border.",
+     "Su fuerza principal fue a la frontera."
+    ],
+    [
+     "The Mongol main force came back together.",
+     "La fuerza principal mongola se reagrupó."
+    ]
+   ],
+   "good": [
+    [
+     "The Mongol main force came back together.",
+     "El grueso del ejército mongol se reagrupó."
+    ],
+    [
+     "Their main strength was cavalry.",
+     "Su fuerza principal era la caballería."
+    ]
+   ]
+  },
+  {
+   "id": "enes-extra-spare",
+   "src": "\\b(extra|spare|additional) \\w+",
+   "tgt": "(?i)\\b(caballos|monturas|hombres|soldados|flechas|armas|raciones|provisiones)\\s+extras?\\b",
+   "msg": "\"spare / extra horses\"를 \"caballos extra\"로 직역 - 스페인어는 de repuesto (말은 de refresco도 관용)",
+   "natural": "caballos de repuesto / de refresco",
+   "bad": [
+    [
+     "Every Mongol soldier rode with several spare horses.",
+     "Cada soldado llevaba varios caballos extra."
+    ]
+   ],
+   "good": [
+    [
+     "Every Mongol soldier rode with several spare horses.",
+     "Cada soldado llevaba varios caballos de repuesto."
+    ],
+    [
+     "They worked extra hours.",
+     "Trabajaron horas extra."
+    ]
+   ]
+  },
+  {
+   "id": "enes-passive-by",
+   "src": "\\b(is|are|was|were|be|been|being)\\s+(\\w+ly\\s+)?\\w+(ed|en|wn|t)\\s+by\\b",
+   "tgt": "(?i)\\b(es|son|era|eran|fue|fueron|sido|será|serán|sería|serían)\\s+(\\w+mente\\s+|muy\\s+|casi\\s+)?\\w+(ado|ada|ados|adas|ido|ida|idos|idas|echo|echa|echos|echas|ierto|ierta|iertos|iertas|uesto|uesta|uestos|uestas)\\s+por\\b",
+   "msg": "영어 수동태 \"was X-ed by\"를 \"fue …do por\"로 그대로 - 말로는 행위자를 주어로 (능동) 또는 se 구문",
+   "natural": "Su propio primo derrocó al emperador.",
+   "bad": [
+    [
+     "The emperor was overthrown by his own cousin.",
+     "El emperador fue derrocado por su propio primo."
+    ],
+    [
+     "The city was surrounded by the Mongols.",
+     "La ciudad fue rodeada por los mongoles."
+    ]
+   ],
+   "good": [
+    [
+     "The emperor was overthrown by his own cousin.",
+     "Su propio primo derrocó al emperador."
+    ],
+    [
+     "He was known by his title.",
+     "Lo conocían por su título."
+    ]
+   ]
+  },
+  {
+   "id": "enes-eventually",
+   "src": "\\beventually\\b",
+   "tgt": "(?i)\\beventualmente\\b",
+   "msg": "\"eventually\"를 \"eventualmente\"로 직역 - 스페인어 eventualmente는 '혹시 · 경우에 따라'라는 뜻",
+   "natural": "al final / con el tiempo / tarde o temprano",
+   "bad": [
+    [
+     "Eventually, the city fell.",
+     "Eventualmente, la ciudad cayó."
+    ]
+   ],
+   "good": [
+    [
+     "Eventually, the city fell.",
+     "Al final, la ciudad cayó."
+    ]
+   ]
+  },
+  {
+   "id": "enes-realize",
+   "src": "\\breali[sz](e|es|ed|ing)\\b",
+   "tgt": "(?i)\\breali(zó|zaron|za|zan|zaba|zaban|zar|zando)\\b",
+   "msg": "\"realize\"(깨닫다)를 \"realizar\"로 직역 - 스페인어 realizar는 '실행하다'",
+   "natural": "se dio cuenta de que / entendió que",
+   "bad": [
+    [
+     "Genghis realized he was being tricked.",
+     "Gengis realizó que lo engañaban."
+    ]
+   ],
+   "good": [
+    [
+     "Genghis realized he was being tricked.",
+     "Gengis se dio cuenta de que lo engañaban."
+    ],
+    [
+     "They carried out a night raid.",
+     "Realizaron un ataque nocturno."
+    ]
+   ]
+  },
+  {
+   "id": "enes-but-pero-split",
+   "src": "^[^\\\"“”«»]*[.?!]\\s+But\\b",
+   "tgt": "[.?!]\\s+Pero\\b(?!\\s+si\\b)",
+   "msg": "한 줄 안에서 영어 \". But\"으로 끊은 자리를 \". Pero\"로 똑같이 끊음 - 문장 첫 Pero가 편에 쌓임. 앞 문장에 \", pero\"로 붙이거나 Aun así · En cambio",
+   "natural": "…, pero ~ / Aun así, ~",
+   "bad": [
+    [
+     "The army was supposed to help. But the moment they stepped outside, they were in open country.",
+     "El ejército debía ayudar. Pero en cuanto salía, estaba en campo abierto."
+    ]
+   ],
+   "good": [
+    [
+     "The army was supposed to help. But the moment they stepped outside, they were in open country.",
+     "El ejército debía ayudar, pero en cuanto salía, quedaba en campo abierto."
+    ],
+    [
+     "But the Mongols knew how to cross it.",
+     "Pero los mongoles sabían cómo cruzarlo."
+    ],
+    [
+     "\"Open your gates, and we will spare you. But resist us, and we will burn your city.\"",
+     "\"Abran sus puertas y les perdonaremos la vida. Pero si se resisten, quemaremos su ciudad.\""
+    ]
+   ]
+  },
+  {
+   "id": "enes-gerund-title",
+   "src": "^(\\d{1,2}:\\d{2}(:\\d{2})?\\s+)?\\w+ing\\b[^.?!,]{0,60}$",
+   "tgt": "^(\\d{1,2}:\\d{2}(:\\d{2})?\\s+)?[A-ZÁÉÍÓÚ]\\w*(ando|iendo|yendo)\\b[^.?!,]{0,60}$",
+   "msg": "영어 -ing 챕터 제목(Crossing the …)을 스페인어 동명사 제목(Cruzando el …)으로 직역 - 스페인어 제목은 명사로",
+   "natural": "El cruce del desierto / La ciudadela de Bujará",
+   "bad": [
+    [
+     "Crossing the Kyzylkum Desert",
+     "Cruzando el desierto de Kyzylkum"
+    ],
+    [
+     "2:56 Breaking Bukhara's citadel",
+     "2:56 Rompiendo la ciudadela de Bujará"
+    ]
+   ],
+   "good": [
+    [
+     "Crossing the Kyzylkum Desert",
+     "El cruce del desierto de Kyzylkum"
+    ],
+    [
+     "Drawing a bow over and over is brutal work.",
+     "Tensando un arco una y otra vez, los hombres se cansaban."
+    ]
+   ]
+  },
+  {
+   "id": "enes-en-century",
+   "src": "\\b\\d{1,2}(st|nd|rd|th)\\s+(c\\.|century)",
+   "tgt": "\\b\\d{1,2}(st|nd|rd|th)\\s+(c\\.|century)|\\bsiglo\\s+\\d{1,2}\\b|\\b\\d{1,2}\\s?[ºª°]\\s+siglo\\b",
+   "msg": "영어 세기 표기(13th c.)를 그대로 두거나 숫자로만 옮김 - 스페인어는 siglo + 로마 숫자",
+   "natural": "siglo XIII",
+   "bad": [
+    [
+     "Rashid al-Din, Jami' al-tawarikh (14th c.)",
+     "Rashid al-Din, Compendio de crónicas (14th c.)"
+    ],
+    [
+     "In the 13th century, the steppe united.",
+     "En el siglo 13, la estepa se unió."
+    ]
+   ],
+   "good": [
+    [
+     "Rashid al-Din, Jami' al-tawarikh (14th c.)",
+     "Rashid al-Din, Compendio de crónicas (siglo XIV)"
+    ]
+   ]
+  },
+  {
+   "id": "enes-this-was-a",
+   "src": "(^|[.?!]\\s+)(This|That|It) (was|is) (a|an)\\b",
+   "tgt": "(^|[.?!]\\s+)(Este|Esta|Ese|Esa) (era|es|fue) (un|una)\\b",
+   "msg": "영어 \"This was a …\" 시작을 \"Este era un …\"로 직역 - 지시대명사 주어는 스페인어에서 어색함, 주어를 이름으로 말하기",
+   "natural": "Los Jin eran un Estado muy poderoso.",
+   "bad": [
+    [
+     "This was a seriously powerful state.",
+     "Este era un Estado muy poderoso."
+    ]
+   ],
+   "good": [
+    [
+     "This was a seriously powerful state.",
+     "Los Jin eran un Estado muy poderoso."
+    ],
+    [
+     "It was only a small frontier fort.",
+     "Era solo un pequeño fuerte fronterizo."
+    ]
+   ]
+  },
+  {
+   "id": "enes-held-tenia",
+   "src": "\\b(held|holds|hold|holding)\\b(?!\\s+(out|on|off|back|up|the upper hand|firm)\\b)",
+   "tgt": "(?i)\\bten(ía|ían|e|en|er|ido)\\s+(el|la|los|las|todo|toda|casi|medio|media|parte)\\b",
+   "msg": "땅을 \"held\"(차지하다)를 \"tenía\"로 직역 - 스페인어로는 '가지고 있었다'로만 들림",
+   "natural": "dominaba / controlaba / era dueño de",
+   "bad": [
+    [
+     "The huge Jin Empire held what is now northern China.",
+     "El enorme Imperio Jin tenía el actual norte de China."
+    ]
+   ],
+   "good": [
+    [
+     "The huge Jin Empire held what is now northern China.",
+     "El enorme Imperio Jin dominaba el actual norte de China."
+    ],
+    [
+     "Otrar held out for five months.",
+     "Otrar tenía víveres para cinco meses."
+    ]
+   ]
+  },
+  {
+   "id": "enes-grew-up",
+   "src": "\\b(grew|grow|grows|growing|grown) up\\b",
+   "tgt": "(?i)\\b(crec(ían|ía|ieron|ió|en|e|er|iendo|ido))\\b",
+   "msg": "\"grew up\"(자라다)를 \"crecer\"로 직역 - crecer는 키 · 크기가 자라는 것, 길러진 환경은 criarse",
+   "natural": "se criaban a caballo",
+   "bad": [
+    [
+     "The Jurchen grew up on horseback.",
+     "Los yurchen crecían a caballo."
+    ]
+   ],
+   "good": [
+    [
+     "The Jurchen grew up on horseback.",
+     "Los yurchen se criaban a caballo."
+    ],
+    [
+     "The city grew rich on trade.",
+     "La ciudad creció con el comercio."
+    ]
+   ]
+  },
+  {
+   "id": "enes-comma-and-pronoun",
+   "src": "\\b(he|she|they|we)\\b[^.?!,]*,\\s+and\\s+\\1\\b",
+   "tgt": ",\\s+y\\s+(luego\\s+|después\\s+)?((se|lo|la|los|las|le|les)\\s+)?\\w+(ó|aron|ieron|ía|ían|aba|aban)\\b",
+   "msg": "영어 \", and he …\"(주어 되풀이)를 \", y + 동사\"로 옮김 - 스페인어는 주어가 같으면 y 앞에 쉼표를 안 찍음",
+   "natural": "Se giró hacia el sur y escupió.",
+   "bad": [
+    [
+     "He turned to face south, and he spat.",
+     "Se giró hacia el sur, y escupió."
+    ]
+   ],
+   "good": [
+    [
+     "He turned to face south, and he spat.",
+     "Se giró hacia el sur y escupió."
+    ],
+    [
+     "The city fell, and the people fled.",
+     "La ciudad cayó, y la gente huyó."
+    ],
+    [
+     "The Tangut founded Western Xia in 1038, and it grew rich on the Silk Road.",
+     "Los tangutos fundaron Xia Occidental en 1038, y se enriqueció en la Ruta de la Seda."
+    ]
+   ]
+  }
+ ]
+}

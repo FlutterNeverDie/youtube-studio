@@ -1,0 +1,383 @@
+{
+ "_설명": "영어 원문 → 인도네시아어 번역 짝 규칙 (2026-11-10, 몽골 장편 1·2편 대조에서 찾음). 원문(src)과 번역문(tgt)이 같은 묶음에서 둘 다 맞을 때만 걸린다. 한 언어 규칙은 id.rules.json. scripts/check-lines.py가 씀, 시험: check-lines.py --selftest",
+ "src": "en",
+ "tgt": "id",
+ "rules": [
+  {
+   "id": "enid-todays-now",
+   "src": "\\b(today's|modern-day|modern|present-day)\\s+(?-i:[A-Z])|\\bwhat(?: is|'s|) now (?-i:[A-Z])|\\bwhat(?: is|'s|) now (northern|southern|eastern|western|central|north|south|east|west)\\b",
+   "tgt": "\\b[A-Z][a-z]+(?: (?:utara|selatan|barat|timur|tengah|barat laut|timur laut))? (?:sekarang|hari ini|saat ini)\\b",
+   "msg": "\"today's X / what is now X\"를 \"X sekarang\"으로 직역 - 인니어로는 \"지금의 X\"보다 \"지금(그때) X가\"로 읽혀 시점이 흐려짐 (1·2편 실제)",
+   "natural": "wilayah yang kini jadi Tiongkok utara / Iran masa kini",
+   "bad": [
+    [
+     "the huge Jin Empire held what is now northern China.",
+     "Kekaisaran Jin menguasai Tiongkok utara sekarang."
+    ],
+    [
+     "stretching from today's Uzbekistan to Iran.",
+     "dari Uzbekistan sampai Iran sekarang."
+    ]
+   ],
+   "good": [
+    [
+     "the huge Jin Empire held what is now northern China.",
+     "Kekaisaran Jin menguasai wilayah yang kini jadi Tiongkok utara."
+    ],
+    [
+     "They had modern weapons by now.",
+     "Jenghis sekarang punya senjata baru."
+    ],
+    [
+     "stretching from today's Uzbekistan to Iran.",
+     "dari Uzbekistan sampai Iran masa kini."
+    ]
+   ]
+  },
+  {
+   "id": "enid-unseen-by-any",
+   "src": "\\b(unseen|unnoticed|undetected|unspotted|unobserved) by (any|a single|anyone|anybody)\\b",
+   "tgt": "\\b(?:tak|tidak|nggak|enggak) (?:ter|ke)[a-z]+ (?:satu [a-z]+|se[a-z]+) pun\\b",
+   "msg": "\"unseen by any city\" 직역 - \"tak terlihat satu kota pun\"은 \"(군대가) 도시를 하나도 못 봤다\"로 읽혀 주어가 뒤집힘",
+   "natural": "tanpa terlihat dari kota mana pun / tanpa ketahuan satu kota pun",
+   "bad": [
+    [
+     "slipped into the desert, unseen by any city,",
+     "menyelinap ke gurun, tak terlihat satu kota pun,"
+    ]
+   ],
+   "good": [
+    [
+     "slipped into the desert, unseen by any city,",
+     "menyelinap ke gurun tanpa terlihat dari kota mana pun,"
+    ]
+   ]
+  },
+  {
+   "id": "enid-had-history",
+   "src": "\\b(had|have|has|share[ds]?) (a |some )?(long |bad )?history\\b|\\bgo(es)? way back\\b|\\bbad blood\\b",
+   "tgt": "\\b(?:punya|memiliki|mempunyai) sejarah(?=\\s*[.,!?…]|\\s*$)",
+   "msg": "\"These two had history\" 직역 - \"punya sejarah\"는 \"역사가 있다(유서 깊다)\"로 읽혀 \"얽힌 악연\"이라는 뜻이 사라짐",
+   "natural": "Dua orang ini sudah lama berselisih / punya dendam lama",
+   "bad": [
+    [
+     "These two had history, you see.",
+     "Dua orang ini punya sejarah."
+    ]
+   ],
+   "good": [
+    [
+     "These two had history, you see.",
+     "Dua orang ini ternyata punya dendam lama."
+    ]
+   ]
+  },
+  {
+   "id": "enid-secure-back",
+   "src": "\\b(secure|cover|protect|watch) (his|their|its|her|the) (back|rear|flank)s?\\b",
+   "tgt": "\\b(?:mengamankan|melindungi|menjaga) punggung\\w*",
+   "msg": "\"secure his back\" 직역 - \"mengamankan punggungnya\"는 몸의 등을 지킨다는 말로 읽힘 (군사 뜻 아님)",
+   "natural": "memastikan tak ada ancaman dari belakang / mengamankan sisi belakangnya",
+   "bad": [
+    [
+     "Genghis had to secure his back.",
+     "Jenghis harus mengamankan punggungnya."
+    ]
+   ],
+   "good": [
+    [
+     "Genghis had to secure his back.",
+     "Jenghis harus memastikan tak ada ancaman dari belakang."
+    ]
+   ]
+  },
+  {
+   "id": "enid-invasion-of",
+   "src": "\\b(invasion|conquest|attack|siege|invasions) of (the )?[A-Z]",
+   "tgt": "\\b(?:[Ii]nvasi|[Ss]erbuan|[Ss]erangan|[Pp]enyerbuan|[Pp]enaklukan) (?:bangsa |[Dd]inasti )?[A-Z][a-z]+\\b(?!\\s+(?:Barat\\s+|Tengah\\s+)?(?:ke|atas|terhadap|oleh)\\b)",
+   "msg": "\"the Mongol invasion of the Jin\"을 \"Invasi Jin\"·\"Invasi Mongol\"로 줄임 - 인니어 \"Invasi X\"는 X가 친 쪽으로 읽힘. 누가 누구를 쳤는지 \"ke\"로 둘 다 밝힘 (2026-10 실제 사고)",
+   "natural": "Invasi Mongol ke Jin",
+   "bad": [
+    [
+     "The Mongol invasion of the Jin, part one.",
+     "Invasi Jin, bagian 1."
+    ],
+    [
+     "The Mongol invasion of the Jin, part one.",
+     "Invasi Mongol 1."
+    ]
+   ],
+   "good": [
+    [
+     "The Mongol invasion of the Jin, part one.",
+     "Invasi Mongol ke Jin, bagian 1."
+    ],
+    [
+     "The Mongol invasion of the Jin, continues in part two.",
+     "Invasi Mongol ke Xia Barat ke Jin, berlanjut di bagian 2."
+    ]
+   ]
+  },
+  {
+   "id": "enid-future-enemy",
+   "src": "\\bfuture (enemy|enemies|rival|rivals|threat|foe)\\b",
+   "tgt": "\\b(?:musuh|saingan|ancaman|lawan) (?:di )?masa depan\\b",
+   "msg": "\"a future enemy\" 직역 - \"musuh masa depan\"은 \"미래(먼 훗날)의 적\"처럼 들림, 인니어는 \"calon\"",
+   "natural": "calon musuh / musuh berikutnya",
+   "bad": [
+    [
+     "Genghis Khan marked one as a future enemy.",
+     "satu ditandai Jenghis Khan sebagai musuh masa depan."
+    ]
+   ],
+   "good": [
+    [
+     "Genghis Khan marked one as a future enemy.",
+     "Jenghis Khan menandai satu calon musuh."
+    ]
+   ]
+  },
+  {
+   "id": "enid-participle-front",
+   "src": "(^|[.?!]\\s+)(?!Indeed\\b|Need\\b|Speed\\b)(\\w+ed|Driven|Beaten|Shaken|Left|Cut off|Caught|Stuck)\\b[^.?!,]*,",
+   "tgt": "(?:^|(?<=[.!?…]\\s))(?:Di(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,}|Ter(?!nyata|us\\b|akhir|utama|lebih|sebut)[a-z]{3,})\\b[^.!?,]*,",
+   "msg": "영어 분사구 문두 \"Blamed for ..., the emperor\"를 \"Disalahkan karena ...,\"로 그대로 - 인니어 말로는 주어 먼저 또는 \"Karena\"",
+   "natural": "Karena dianggap gagal ..., sang kaisar ... / Sang kaisar disalahkan karena ..., lalu digulingkan",
+   "bad": [
+    [
+     "Blamed for failing to stop the Mongols, the emperor was overthrown by his own cousin.",
+     "Disalahkan karena gagal menahan Mongol, sang kaisar digulingkan sepupunya sendiri."
+    ]
+   ],
+   "good": [
+    [
+     "Blamed for failing to stop the Mongols, the emperor was overthrown by his own cousin.",
+     "Sang kaisar dianggap gagal menahan Mongol, lalu digulingkan sepupunya sendiri."
+    ],
+    [
+     "Blamed for failing, the emperor fell.",
+     "Di depan tembok, sang kaisar jatuh."
+    ],
+    [
+     "Indeed, the Jin were strong.",
+     "Ternyata, Jin memang kuat."
+    ]
+   ]
+  },
+  {
+   "id": "enid-adj-front",
+   "src": "(^|[.?!]\\s+)(Desperate|Furious|Terrified|Frightened|Panicked|Panicking|Exhausted|Starving|Angry|Afraid|Shocked|Stunned|Confused|Cornered|Enraged|Worried|Suspicious|Ashamed|In (a )?panic|In desperation|Out of options)\\s*,",
+   "tgt": "(?:^|(?<=[.!?…]\\s))(?:Panik|Putus asa|Marah|Murka|Takut|Ketakutan|Kaget|Terkejut|Bingung|Lelah|Kelelahan|Kelaparan|Terdesak|Geram|Cemas|Kecewa|Curiga|Malu)\\s*,",
+   "msg": "\"Desperate, Xia begged\" / \"In a panic, the garrison\" 직역 - 감정 형용사 한 낱말 + 쉼표 문두는 영어 꼴",
+   "natural": "Karena putus asa, Xia ... / Xia yang terdesak pun ... / Pasukan kota panik dan ...",
+   "bad": [
+    [
+     "Desperate, Xia begged the Jin for help.",
+     "Putus asa, Xia memohon bantuan Jin."
+    ],
+    [
+     "In a panic, the garrison tried to slip out.",
+     "Panik, pasukan kota mencoba menyelinap keluar."
+    ]
+   ],
+   "good": [
+    [
+     "Desperate, Xia begged the Jin for help.",
+     "Karena terdesak, Xia memohon bantuan Jin."
+    ],
+    [
+     "In a panic, the garrison tried to slip out.",
+     "Pasukan kota panik dan mencoba menyelinap keluar."
+    ]
+   ]
+  },
+  {
+   "id": "enid-appositive-by",
+   "src": "\\b[A-Z]\\w+, (founded|built|set up|established|created|ruled|led|pushed|driven|made|started) (by|down|out)\\b",
+   "tgt": "\\b[A-Z][\\w-]*(?: [A-Z][\\w-]*)*,\\s*di(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,}\\b",
+   "msg": "\"The Jin, founded by ...\" 명사 + 쉼표 + 분사 조각 직역 - 인니어는 \"yang\"으로 잇거나 문장으로",
+   "natural": "Ada Jin, yang didirikan bangsa Jurchen. / Jin didirikan oleh bangsa Jurchen.",
+   "bad": [
+    [
+     "The Jin, founded by the Jurchen people.",
+     "Jin, didirikan bangsa Jurchen."
+    ],
+    [
+     "The Song, pushed by the Jin down to the Yangtze.",
+     "Song, didesak Jin sampai ke Yangtze."
+    ]
+   ],
+   "good": [
+    [
+     "The Jin, founded by the Jurchen people.",
+     "Ada Jin, yang didirikan bangsa Jurchen."
+    ],
+    [
+     "The Song, pushed by the Jin down to the Yangtze.",
+     "Lalu Song, yang didesak Jin sampai ke Yangtze."
+    ]
+   ]
+  },
+  {
+   "id": "enid-step-number",
+   "src": "\\bStep (one|two|three|four|five|1|2|3|4|5)\\b|(^|[.?!]\\s+)(One|Two|Three|Four|Five):",
+   "tgt": "\\b(?:Langkah|Tahap|Cara|Alasan) (?:satu|dua|tiga|empat|lima)\\b|(?:^|(?<=[.!?…]\\s))(?:Satu|Dua|Tiga|Empat|Lima)\\s*:",
+   "msg": "\"Step one: / One: ... Two:\" 직역 - 인니어는 서수 (pertama, kedua)",
+   "natural": "Langkah pertama: ... / Pertama, ... Kedua, ...",
+   "bad": [
+    [
+     "Step one: find a guide.",
+     "Langkah satu: cari pemandu."
+    ],
+    [
+     "One: the Jin had backed the Tatars.",
+     "Satu: Jin pernah mendukung Tatar."
+    ]
+   ],
+   "good": [
+    [
+     "Step one: find a guide.",
+     "Langkah pertama: cari pemandu."
+    ],
+    [
+     "One: the Jin had backed the Tatars.",
+     "Pertama, Jin pernah mendukung Tatar."
+    ]
+   ]
+  },
+  {
+   "id": "enid-settled-state",
+   "src": "\\bsettled\\b",
+   "tgt": "\\b(?:negara|kerajaan|kekaisaran|kota|bangsa|orang|penduduk)(?: (?!hidup\\b)[a-z]+){0,2} (?:yang )?menetap\\b",
+   "msg": "\"settled state / settled people\" 직역 - \"negara yang menetap\"은 나라가 한곳에 '머문다'는 뜻이 됨",
+   "natural": "negara agraris / negara petani / bangsa yang hidup menetap",
+   "bad": [
+    [
+     "he'd never really gone up against a settled state.",
+     "belum pernah benar-benar melawan negara yang menetap."
+    ],
+    [
+     "a town built by settled people",
+     "kota buatan bangsa menetap"
+    ]
+   ],
+   "good": [
+    [
+     "he'd never really gone up against a settled state.",
+     "belum pernah benar-benar melawan negara agraris."
+    ],
+    [
+     "a town built by settled people",
+     "kota buatan bangsa yang hidup menetap"
+    ]
+   ]
+  },
+  {
+   "id": "enid-perfect",
+   "src": "\\bperfect(ly)?\\b",
+   "tgt": "\\bsempurna\\b",
+   "msg": "영어 perfect를 \"sempurna\"로 그대로 - \"흠 없이 완벽한\"이라 과장, 말로는 \"pas\"·\"cocok\"·\"ideal\"",
+   "natural": "pas sekali / cocok / ideal / paling ampuh",
+   "bad": [
+    [
+     "That made it the perfect dress rehearsal for the Jin.",
+     "Xia jadi ajang latihan sempurna sebelum Jin."
+    ],
+    [
+     "the perfect defense against Mongol horsemen.",
+     "pertahanan sempurna melawan penunggang kuda Mongol."
+    ]
+   ],
+   "good": [
+    [
+     "That made it the perfect dress rehearsal for the Jin.",
+     "Xia pas sekali jadi ajang latihan sebelum Jin."
+    ],
+    [
+     "the perfect defense against Mongol horsemen.",
+     "pertahanan yang ideal melawan penunggang kuda Mongol."
+    ]
+   ]
+  },
+  {
+   "id": "enid-by-oleh",
+   "src": "\\b(is|are|was|were|be|been|being|get|gets|got)\\s+\\w+(ed|en|wn|t)\\b(\\s+\\w+)?\\s+by\\b",
+   "tgt": "\\bdi(?!a\\b|nasti|ri\\b|am\\b|ngin|nding|ni\\b)[a-z]{3,}\\s+oleh\\b",
+   "msg": "영어 수동 \"was powered by\"를 \"di- ... oleh\"로 그대로 - oleh를 빼거나 행위자를 주어로",
+   "natural": "Ketapel ini ditarik tenaga orang / Mongol menghancurkan kota itu",
+   "bad": [
+    [
+     "These catapults were powered by people pulling ropes.",
+     "Ketapel ini digerakkan oleh orang-orang yang menarik tali."
+    ]
+   ],
+   "good": [
+    [
+     "These catapults were powered by people pulling ropes.",
+     "Ketapel ini digerakkan tenaga orang yang menarik tali."
+    ]
+   ]
+  },
+  {
+   "id": "enid-question-comma",
+   "src": "\\b(how|why|what|when)\\s*,",
+   "tgt": "\\b(?:[Bb]agaimana|[Gg]imana|[Kk]enapa|[Mm]engapa|[Aa]pa|[Kk]apan)\\s*,\\s*(?=\\w)",
+   "msg": "영어 \"So how, / did ...\"의 끊김을 그대로 옮겨 의문사 뒤에 쉼표 - 인니어는 의문사와 문장을 붙여 읽음",
+   "natural": "Jadi, bagaimana Jenghis Khan bersiap ... ?",
+   "bad": [
+    [
+     "So how, did Genghis Khan get ready for a war with the Jin?",
+     "Jadi bagaimana, Jenghis Khan bersiap perang melawan Jin?"
+    ]
+   ],
+   "good": [
+    [
+     "So how, did Genghis Khan get ready for a war with the Jin?",
+     "Jadi, bagaimana Jenghis Khan bersiap perang melawan Jin?"
+    ]
+   ]
+  },
+  {
+   "id": "enid-died-mati",
+   "src": "\\b(died|dies|passed away)\\b(?! (in|at|during) (battle|the battle|combat|the fighting|war))",
+   "tgt": "\\bmati\\b(?!-)",
+   "msg": "사람(특히 황제)이 병 · 노환으로 \"died\"를 \"mati\"로 - 짐승에 쓰는 거친 말, 황제는 \"wafat\", 사람은 \"meninggal\" (싸움에서는 \"tewas\")",
+   "natural": "Zhangzong wafat tanpa pewaris / meninggal",
+   "bad": [
+    [
+     "But then Zhangzong died with no heir.",
+     "Tapi lalu Zhangzong mati tanpa pewaris."
+    ]
+   ],
+   "good": [
+    [
+     "But then Zhangzong died with no heir.",
+     "Tapi lalu Zhangzong wafat tanpa pewaris."
+    ],
+    [
+     "The prince was so angry he wanted Genghis dead.",
+     "Sang pangeran begitu marah sampai ingin Jenghis mati."
+    ]
+   ]
+  },
+  {
+   "id": "enid-cleft-adalah",
+   "src": "\\b(the|what) \\w+(\\s+\\w+){0,5}\\s+(was|were)\\s+(a|an|the|\\d)",
+   "tgt": "\\b[Yy]ang (?:[a-z]+ ){1,4}adalah\\b",
+   "msg": "\"The message they sent was a threat\" 직역 - \"yang ... adalah\"는 영어 was를 그대로 옮긴 글말, 말로는 쌍점 · -lah · 바로 서술",
+   "natural": "Pesannya jelas: ancaman. / Yang pertama berangkat: 20.000 penunggang kuda",
+   "bad": [
+    [
+     "The message they sent was a threat.",
+     "Pesan yang mereka kirim adalah ancaman."
+    ]
+   ],
+   "good": [
+    [
+     "The message they sent was a threat.",
+     "Pesannya jelas: ancaman."
+    ]
+   ]
+  }
+ ]
+}

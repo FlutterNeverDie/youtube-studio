@@ -1,0 +1,282 @@
+{
+ "_설명": "영어 원문 → 힌디어 번역 짝 규칙 (2026-11-10). 원문(src)과 번역문(tgt)이 같은 묶음에서 둘 다 맞을 때만 걸린다 - 영어 구조를 그대로 옮긴 흔적. 데바나가리는 \\b가 안 맞아 (?<![\\u0900-\\u0963\\u0966-\\u097F]) 경계를 씀, 누크타는 분해형. 근거 hi.md \"AI 티 · 번역투\" + 몽골 1·2편 초안. scripts/check-lines.py가 씀, 시험: check-lines.py --selftest",
+ "src": "en",
+ "tgt": "hi",
+ "rules": [
+  {
+   "id": "enhi-barely",
+   "src": "\\b(barely|hardly|scarcely)\\b",
+   "tgt": "(?<![\\u0900-\\u0963\\u0966-\\u097F])मुश्किल से\\s+(?:एक|कोई|किसी|दो|दस|सौ)(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "\"barely attacked a single city\" 직역 - \"मुश्किल से एक शहर\"는 \"겨우 한 곳은 했다\"(긍정)로 들림. 영어 barely는 사실상 부정",
+   "natural": "एक भी शहर पर ढंग से हमला नहीं किया था / शायद ही कभी … किया हो",
+   "bad": [
+    [
+     "The Mongols had barely attacked a single city.",
+     "मंगोलों ने मुश्किल से एक शहर पर हमला किया था।"
+    ]
+   ],
+   "good": [
+    [
+     "The Mongols had barely attacked a single city.",
+     "मंगोलों ने एक भी शहर पर ढंग से हमला नहीं किया था।"
+    ],
+    [
+     "He barely escaped.",
+     "वो मुश्किल से बच निकला।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-continues-part",
+   "src": "\\bcontinues? in (part|episode|chapter)\\b|\\bto be continued\\b",
+   "tgt": "में जारी रहेग[ाी](?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "\"… continues in Part 2\" 직역 - \"पार्ट 2 में जारी रहेगा\"는 뉴스 자막 말투",
+   "natural": "आगे की कहानी पार्ट 2 में / बाक़ी कहानी अगले पार्ट में",
+   "bad": [
+    [
+     "The Mongol invasion of the Jin continues in part two.",
+     "जिन पर मंगोल आक्रमण, पार्ट 2 में जारी रहेगा।"
+    ]
+   ],
+   "good": [
+    [
+     "The Mongol invasion of the Jin continues in part two.",
+     "जिन पर मंगोल हमले की आगे की कहानी, पार्ट 2 में।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-secure-rear",
+   "src": "\\b(secure|protect|cover|guard) (his|her|their|its|our|your|the) (back|rear|flank)s?\\b",
+   "tgt": "(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:पीठ|पीछे|पिछला हिस्सा|पिछवाड़ा)\\s+(?:को\\s+)?(?:सुरक्षित|महफ़ूज़)",
+   "msg": "\"secure his rear/back\" 숙어 직역 - \"अपनी पीठ सुरक्षित करनी थी\"는 몸의 등을 지키는 말로 들림",
+   "natural": "पीछे से कोई ख़तरा न रहे / पहले पीछे का ख़तरा ख़त्म करना था",
+   "bad": [
+    [
+     "Genghis had to secure his back.",
+     "चंगेज़ को अपनी पीठ सुरक्षित करनी थी।"
+    ]
+   ],
+   "good": [
+    [
+     "Genghis had to secure his back.",
+     "चंगेज़ को पहले ये पक्का करना था कि पीछे से कोई ख़तरा न रहे।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-future-enemy",
+   "src": "\\bfuture (enemy|enemies|rival|rivals|threat|foe|foes|target)\\b",
+   "tgt": "(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:आने वाल[ाेी]|भविष्य (?:का|के|की)|भावी)\\s+(?:दुश्मन|शत्रु|ख़तरा|ख़तरे|प्रतिद्वंद्वी|निशाना)(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "\"marked as a future enemy\" 직역 - \"आने वाला दुश्मन मान लिया\"는 어색한 짜맞춤",
+   "natural": "तय कर लिया कि अगला निशाना X होगा / X से आगे चलकर टकराना ही था",
+   "bad": [
+    [
+     "Genghis marked one as a future enemy.",
+     "चंगेज़ ख़ान ने एक को अपना आने वाला दुश्मन मान लिया।"
+    ]
+   ],
+   "good": [
+    [
+     "Genghis marked one as a future enemy.",
+     "चंगेज़ ख़ान ने तय कर लिया कि अगला निशाना जिन होगा।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-which-comma",
+   "src": ",\\s+(which|who|whom|whose)\\b",
+   "tgt": ",\\s+(?:जिस(?:े|का|की|के|में|पर|से|ने|के पास)|जिन्(?:हें|होंने)|जिनक[ाीे]|जिनमें|जिनसे|जिनपर|जो)(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "영어 \", which/who …\" 비제한 관계절을 쉼표 + जिसे/जो로 그대로 이음 - 귀로 들으면 꼬리가 길어짐",
+   "natural": "문장을 둘로: \"… था जिन। पूरा उत्तरी चीन उसी के हाथ में था।\" / \"जो … वो …\" 꼴",
+   "bad": [
+    [
+     "That meant the Jin, who held all of northern China.",
+     "इसका मतलब था जिन, जिसके हाथ में पूरा उत्तरी चीन था।"
+    ]
+   ],
+   "good": [
+    [
+     "That meant the Jin, who held all of northern China.",
+     "इसका मतलब था जिन। पूरा उत्तरी चीन उसी के हाथ में था।"
+    ],
+    [
+     "He backed the Tatars, the people who killed his father.",
+     "उसने उन तातारों का साथ दिया था जिन्होंने उसके पिता को मारा।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-noun-fragment",
+   "src": "[.?!…]\\s+(?:[\\w'’-]+\\s+){0,3}[\\w'’-]+\\.(?=\\s|$)",
+   "tgt": "(?<=[।?!…]\\s)(?:[^\\s।?!…:]+\\s+){0,3}(?!(?:था|थी|थे|है|हैं|हो|हुआ|हुई|हुए|पड़ा|पड़ी|पड़े|गया|गई|गए|दिया|दी|दिए|लिया|ली|लिए|किया|की|किए|रहा|रही|रहे|सका|सकी|सके|चुका|चुकी|चुके|मिला|मिली|मिले|चाहिए|नहीं)।)(?![^\\s।?!]*(?:ता|ती|ते|ो|िए|िये|ीं|ेगा|ेगी|ेंगे|ूँ|ें)।)[^\\s।?!…:]+।",
+   "msg": "영어 명사 조각 강조(\"… enemy. Jin.\")를 힌디어도 서술어 없는 조각 문장으로 옮김 - 한 편에 한두 번만",
+   "natural": "… और वो था जिन। / उन्होंने पानी से घेरने की ठानी।",
+   "bad": [
+    [
+     "Genghis marked one as a future enemy. The Jin.",
+     "चंगेज़ ख़ान ने एक को दुश्मन मान लिया। जिन।"
+    ],
+    [
+     "They tried something reckless. A siege by water.",
+     "उन्होंने एक जोखिम भरा दाँव चला। पानी से घेराबंदी।"
+    ],
+    [
+     "They had no choice but to shoot. At their own people.",
+     "उनके पास तीर चलाने के सिवा कोई चारा नहीं था। अपने ही लोगों पर।"
+    ]
+   ],
+   "good": [
+    [
+     "Genghis marked one as a future enemy. The Jin.",
+     "चंगेज़ ख़ान ने तय कर लिया कि अगला निशाना जिन होगा।"
+    ],
+    [
+     "He couldn't believe it. He was furious.",
+     "उसे यक़ीन नहीं हुआ। उसका ग़ुस्सा फूट पड़ा।"
+    ],
+    [
+     "Then the Jin refused. They waited.",
+     "फिर जिन ने मना किया। वो रुके रहे।"
+    ],
+    [
+     "They had no choice but to shoot. At their own people.",
+     "उन्हें अपने ही लोगों पर तीर चलाने पड़े।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-and-so",
+   "src": "(?:^|[.?!…]\\s+)And so\\b",
+   "tgt": "(?:^|(?<=[।?!…]\\s))और इस तरह(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "\"And so …\" 요약 문장 직역 - \"और इस तरह\"가 붙은 줄마다 나오면 틀처럼 들림, 한 편에 한 번만",
+   "natural": "(빼고 바로 결과) / यूँ … / आख़िरकार …",
+   "bad": [
+    [
+     "And so the Mongols conquered Khwarazm.",
+     "और इस तरह मंगोलों ने जीत लिया ख़्वारज़्म।"
+    ]
+   ],
+   "good": [
+    [
+     "And so the Mongols conquered Khwarazm.",
+     "यूँ ख़्वारज़्म मंगोलों के हाथ आ गया।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-hedge-stack",
+   "src": "\\b(about|around|almost|nearly|roughly|approximately|some)\\b(?![^.?!]*\\b(about|around|almost|nearly|roughly|approximately)\\b)",
+   "tgt": "(?:लगभग|तक़रीबन|क़रीब)[^।?!]{0,40}?(?:के आसपास|के लगभग|के क़रीब|से कुछ ज़्यादा|से थोड़ा ज़्यादा)|(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:लगभग|तक़रीबन)\\s+क़रीब(?![\\u0900-\\u0963\\u0966-\\u097F])|(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:बस|सिर्फ़|मुश्किल से)\\s+(?:लगभग|तक़रीबन|क़रीब)(?![\\u0900-\\u0963\\u0966-\\u097F])|(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:लगभग|तक़रीबन|क़रीब)(?![\\u0900-\\u0963\\u0966-\\u097F])[^।?!]{1,60}?(?<![\\u0900-\\u0963\\u0966-\\u097F])(?:लगभग|तक़रीबन)(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "영어 about/almost 하나를 힌디어에서 얼버무림 두 겹(\"लगभग … के आसपास\"·\"बस लगभग\")으로 옮김",
+   "natural": "숫자는 한 번 딱: क़रीब डेढ़ लाख / 적은 쪽은 सिर्फ़ … ही",
+   "bad": [
+    [
+     "Xia still had around 150,000 troops.",
+     "शिया के पास अब भी लगभग डेढ़ लाख के आसपास सैनिक थे।"
+    ]
+   ],
+   "good": [
+    [
+     "Xia still had around 150,000 troops.",
+     "शिया के पास अब भी क़रीब डेढ़ लाख सैनिक थे।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-by-passive",
+   "src": "\\b(is|are|was|were|be|been|being|got|gets|get)\\s+\\w+(ed|en|wn|t)\\b(\\s+\\w+)?\\s+by\\b|\\b\\w+(ed|en|wn)\\s+by\\s+(the|his|her|their|its|a|an)\\b",
+   "tgt": "(?<![\\u0900-\\u0963\\u0966-\\u097F])द्वारा(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "영어 수동태 \"by X\"를 \"X द्वारा\"로 직역 - 말로는 \"X ने … किया\" 능동",
+   "natural": "X ने … किया / X का बनाया …",
+   "bad": [
+    [
+     "The emperor was overthrown by his own cousin.",
+     "बादशाह को उसके अपने चचेरे भाई द्वारा हटाया गया।"
+    ]
+   ],
+   "good": [
+    [
+     "The emperor was overthrown by his own cousin.",
+     "बादशाह का तख़्त उसके अपने चचेरे भाई ने पलट दिया।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-one-of-most",
+   "src": "\\bone of the (most|biggest|largest|greatest|best|strongest|richest|deadliest|oldest|few|main|first)\\b",
+   "tgt": "सबसे [^।?!]{1,30}?(?:ों|ओं|यों) में से (?:एक|था|थी|थे)(?![\\u0900-\\u0963\\u0966-\\u097F])",
+   "msg": "\"one of the most …\" 직역 - \"सबसे … में से एक\"는 글말 틀",
+   "natural": "गिने-चुने … में / सबसे बड़े … में गिना जाता था → 짧게 \"बहुत बड़ा …\"",
+   "bad": [
+    [
+     "It was one of the richest cities on the Silk Road.",
+     "ये सिल्क रोड के सबसे अमीर शहरों में से एक था।"
+    ]
+   ],
+   "good": [
+    [
+     "It was one of the richest cities on the Silk Road.",
+     "सिल्क रोड पर इससे अमीर शहर गिने-चुने ही थे।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-appositive",
+   "src": "\\w,\\s+(?-i:[A-Z][\\w'’-]+(?:\\s+[A-Z][\\w'’-]+)*),\\s+(the|a|an|his|her|their)\\b",
+   "tgt": "(?:के पास|को|से|ने|का|की|के|में),\\s+[^,।?!]{2,30},\\s+[^,।?!]{2,40}?(?:का|की|के)\\s",
+   "msg": "영어 이름 뒤 덧붙임(appositive \"uncle, Wanyan Yongji, the Prince of Wei\")을 쉼표째 옮김 - 후치사 뒤에 이름 · 직함이 따로 떠 있음",
+   "natural": "직함 + 이름을 한 덩어리로, 후치사는 끝에 한 번: \"… चाचा, वेई के राजकुमार वानयान योंगजी के पास गया\"",
+   "bad": [
+    [
+     "The crown went to his uncle, Wanyan Yongji, the Prince of Wei.",
+     "ताज गया उसके चाचा के पास, वानयान योंगजी, वेई का राजकुमार।"
+    ]
+   ],
+   "good": [
+    [
+     "The crown went to his uncle, Wanyan Yongji, the Prince of Wei.",
+     "ताज उसके चाचा, वेई के राजकुमार वानयान योंगजी के पास गया।"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-how-long-before",
+   "src": "\\bhow long (before|until|till)\\b",
+   "tgt": "(?:कितनी देर|कितना वक़्त|कितना समय|कितने दिन)\\s+(?:लगती|लगता|लगते)(?:\\s+(?:है|था|थी))?,",
+   "msg": "\"How long before X …?\" 어순 직역 - 질문을 앞에 세우고 내용을 쉼표 뒤로 뺌",
+   "natural": "तो X को … करने में कितनी देर लगती?",
+   "bad": [
+    [
+     "So how long before the Jin cut the trade routes?",
+     "तो कितनी देर लगती, जिन को व्यापार के रास्ते काटने में?"
+    ]
+   ],
+   "good": [
+    [
+     "So how long before the Jin cut the trade routes?",
+     "तो जिन को व्यापार के रास्ते काटने में कितनी देर लगती?"
+    ]
+   ]
+  },
+  {
+   "id": "enhi-lets-begin",
+   "src": "\\blet's (begin|start|get started|dive in)\\b",
+   "tgt": "(?:^|(?<=[।?!…]\\s))चलिए।",
+   "msg": "\"Let's begin.\"을 \"चलिए।\" 한 마디로 줄임 - \"(자리를 뜨게) 가시죠\"로 들림",
+   "natural": "चलिए शुरू करते हैं।",
+   "bad": [
+    [
+     "Part one. Let's begin.",
+     "पार्ट 1। चलिए।"
+    ]
+   ],
+   "good": [
+    [
+     "Part one. Let's begin.",
+     "पार्ट 1। चलिए शुरू करते हैं।"
+    ]
+   ]
+  }
+ ]
+}
