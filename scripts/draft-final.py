@@ -278,7 +278,8 @@ if cmd in ("run", "dubs"):
     steps = [
         ("대본·화면 검사", lambda: (sh(sys.executable, "scripts/check-draft.py", f"episodes/{name}"),
                                   # AI 티 · 번역투 (2026-11-09): 지금은 알리기만 (--report), 사용자가 확인하면 막는 검사로
-                                  sh(sys.executable, "scripts/check-lines.py", f"episodes/{name}", *([f"uploads/{name}.json"] if (ROOT / f"uploads/{name}.json").exists() else []), "--report"))),
+                                  sh(sys.executable, "scripts/check-lines.py", f"episodes/{name}", *([f"uploads/{name}.json"] if (ROOT / f"uploads/{name}.json").exists() else []), "--report"),
+                                  sh(sys.executable, "scripts/calque-review.py", "gate", f"episodes/{name}", "--warn"))),  # 번역투 AI 검토 도장 (2026-11-10, 알리기만)
         ("1440p 본편 렌더", lambda: (sh(sys.executable, __file__, f"episodes/{name}", "timeline"), sh(*py, "scripts/render-checked.py", comp, tl, out))),
         ("깜빡임 검사", lambda: sh(sys.executable, "scripts/check-draft.py", f"episodes/{name}", "--video", out)),  # 한두 프레임만 튀었다 돌아오는 것만 (check-flicker는 초안의 장면 안 컷을 오탐)
         ("더빙 트랙", dubs),

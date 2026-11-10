@@ -1,0 +1,344 @@
+{
+ "_설명": "영어 원문 → 브라질 포르투갈어 번역 짝 규칙 (2026-11-10). 원문(src)과 번역문(tgt)이 같은 묶음에서 둘 다 맞을 때만 걸린다 - 영어 틀을 그대로 옮긴 흔적. 근거는 pt.md와 몽골 1·2편 실제 줄. 원어민 확인 전까지 전부 warn. scripts/check-lines.py가 씀, 시험: check-lines.py --selftest",
+ "src": "en",
+ "tgt": "pt",
+ "rules": [
+  {
+   "id": "enpt-one-two",
+   "src": "(^|[.?!…]\\s+)(One|Two|Three|Four):|\\bStep (one|two|three|four|1|2|3|4)\\b",
+   "tgt": "(^|[.?!…]\\s+)(Um|Uma|Dois|Duas|Três|Quatro|Passo (um|dois|três|quatro|[1-4]))\\s*:",
+   "msg": "\"One: / Two: / Step one:\" 직역 - 포르투갈어 말로는 서수 (Primeiro: · Segundo: / Primeiro passo:)",
+   "natural": "Primeiro: ... Segundo: ... / Primeiro passo: ... Depois, ...",
+   "bad": [
+    [
+     "One: the Jin had backed the Tatars.",
+     "Um: os Jin apoiaram os tártaros."
+    ],
+    [
+     "Step two: split up.",
+     "Passo dois: dividir."
+    ]
+   ],
+   "good": [
+    [
+     "One: the Jin had backed the Tatars.",
+     "Primeiro: os Jin apoiaram os tártaros."
+    ],
+    [
+     "Step two: split up.",
+     "Segundo passo: dividir as tropas."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-had-history",
+   "src": "\\b(have|has|had) (some |a )?(long )?history\\b|\\b(go|goes|went) way back\\b",
+   "tgt": "\\b(têm|tem|tinham|tinha|tiveram) (uma )?(longa )?história\\b",
+   "msg": "\"had history\"(묵은 사이) 직역 - \"tinham história\"는 \"역사가 있었다\"로만 들림",
+   "natural": "Essa briga vinha de antes / Os dois tinham contas a acertar",
+   "bad": [
+    [
+     "These two had history, you see.",
+     "Esses dois já tinham história."
+    ]
+   ],
+   "good": [
+    [
+     "These two had history, you see.",
+     "Essa briga vinha de antes."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-keep-coming",
+   "src": "\\bkeep (them|it|things|those|the \\w+) (coming|flowing|going|moving)\\b",
+   "tgt": "\\bmanter\\s+(isso|isto|eles|elas|[oa]s? [\\wà-úÀ-Ú]+)\\s+[\\wà-úÀ-Ú]+(ando|endo|indo)\\b",
+   "msg": "\"keep them coming\" 직역 - manter + 현재분사(manter isso chegando)는 영어 틀",
+   "natural": "Pra isso continuar chegando / Pra não faltar",
+   "bad": [
+    [
+     "To keep them coming, you had three options.",
+     "Pra manter isso chegando, havia três opções."
+    ]
+   ],
+   "good": [
+    [
+     "To keep them coming, you had three options.",
+     "Pra isso continuar chegando, havia três opções."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-plus",
+   "src": "\\bplus\\b",
+   "tgt": ",\\s*mais\\s+(?!que\\b|do\\b|de\\b|tarde\\b|uma vez\\b)[a-zà-ú]",
+   "msg": "덧붙이는 \"plus\"를 \", mais X\"로 직역 - 비교의 mais로 읽힘",
+   "natural": "além de seda e ferro / e ainda seda e ferro",
+   "bad": [
+    [
+     "Grain, salt and tea, plus silk and iron for war.",
+     "Grãos, sal e chá, mais seda e ferro pra guerra."
+    ]
+   ],
+   "good": [
+    [
+     "Grain, salt and tea, plus silk and iron for war.",
+     "Grãos, sal e chá, além de seda e ferro pra guerra."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-should-could",
+   "src": "\\b(no|nobody|no one|none)\\b[^.?!]{0,40}\\b(should|was supposed to|were supposed to|is supposed to|are supposed to)\\b",
+   "tgt": "\\b(nenhum|nenhuma|ninguém)\\b[^.?!]{0,40}\\bdeveri(a|am)\\b|\\bdeveri(a|am)\\b[^.?!]{0,30}\\b(nenhum|nenhuma)\\b",
+   "msg": "\"no army was supposed to / should\"(될 리 없다)를 \"deveria\"로 직역 - \"하면 안 된다\"(금지)로 들림",
+   "natural": "que nenhum exército conseguiria atravessar / que, em tese, ninguém atravessava",
+   "bad": [
+    [
+     "a desert no army was supposed to cross",
+     "um deserto que nenhum exército deveria atravessar"
+    ]
+   ],
+   "good": [
+    [
+     "a desert no army was supposed to cross",
+     "um deserto que nenhum exército conseguiria atravessar"
+    ]
+   ]
+  },
+  {
+   "id": "enpt-you-generic",
+   "src": "\\byou(rself)?\\b",
+   "tgt": "\\bvocê\\s+(?:(?:não|já|só|também|nem)\\s+)?(?!sabia\\b)[\\wà-úÀ-Ú]*(?:ava|avam|ia|iam)\\b|\\b[\\wà-úÀ-Ú]+r\\s+você\\s+mesmo\\b",
+   "msg": "옛 이야기 속 일반 주어 you를 \"você\"로 직역 (você negociava · plantar você mesmo) - 시청자에게 직접 말할 때만 você",
+   "natural": "(주어 없이) / a gente / por conta própria",
+   "bad": [
+    [
+     "And you traded with settled farming states.",
+     "E você negociava com Estados agrícolas sedentários."
+    ],
+    [
+     "Or take the land and grow it yourself.",
+     "Ou tomar a terra e plantar você mesmo."
+    ]
+   ],
+   "good": [
+    [
+     "And you traded with settled farming states.",
+     "E o comércio era com Estados agrícolas."
+    ],
+    [
+     "Or take the land and grow it yourself.",
+     "Ou tomar a terra e plantar por conta própria."
+    ],
+    [
+     "Did you know that?",
+     "Você sabia disso?"
+    ]
+   ]
+  },
+  {
+   "id": "enpt-his-seu",
+   "src": "\\b(his|her|their|its)\\b",
+   "tgt": "(?<!cada uma com )(?<!cada um com )\\b(seu|sua|seus|suas)\\b",
+   "msg": "영어 his · their · its를 매번 seu · sua로 옮김 - 딱딱하고 \"당신의\"로도 들림, 관사로 충분",
+   "natural": "o exército / o exército dele·deles / o próprio",
+   "bad": [
+    [
+     "It broke its great army into pieces.",
+     "Picou seu grande exército em pedaços."
+    ]
+   ],
+   "good": [
+    [
+     "It broke its great army into pieces.",
+     "Dividiu o exército em pedaços."
+    ],
+    [
+     "So the Mongols spread out into several columns, each using its own wells.",
+     "Então os mongóis se abriram em várias colunas, cada uma com seus poços."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-passive-por",
+   "src": "\\b(is|are|was|were|be|been|being|got|gets)\\s+(\\w+ly\\s+)?\\w+(ed|en|wn|t)\\b(\\s+\\w+)?\\s+by\\b",
+   "tgt": "\\b(foi|foram|tinha sido|tinham sido|será|serão)\\s+([\\wà-úÀ-Ú]+\\s+)?[\\wà-úÀ-Ú]+(ad|id|eit|ist|ost)[oa]s?\\s+(pel[oa]s?|por)\\b",
+   "msg": "영어 수동태 \"was X-ed by\"(한 번 일어난 일)를 \"foi + 분사 + por\"로 그대로 - 말로는 행위자를 주어로 (eram movidas por 같은 설명은 안 잡음)",
+   "natural": "o próprio primo derrubou o imperador",
+   "bad": [
+    [
+     "Blamed for failing, the emperor was overthrown by his own cousin.",
+     "Culpado, o imperador foi derrubado pelo próprio primo."
+    ]
+   ],
+   "good": [
+    [
+     "Blamed for failing, the emperor was overthrown by his own cousin.",
+     "Culpado, o imperador acabou derrubado pelo próprio primo."
+    ],
+    [
+     "These catapults were powered by people pulling ropes.",
+     "Essas catapultas eram movidas por gente puxando cordas."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-but-mas",
+   "src": "(^|[.?!…]\\s+)But,?\\s+(to|in|off|out|over|further|farther)\\s+(the\\s+)?(far\\s+)?(south|north|east|west)",
+   "tgt": "(^|[.?!…]\\s+)Mas,?\\s+(ao|no|mais ao|lá no|a|à)\\s+(sul|norte|leste|oeste)\\b",
+   "msg": "영어 내레이션 틀 \"But to the south\"(장면 바꾸기)를 \"Mas ao sul\"로 그대로 - 대조보다 장면 전환이면 \"Já ao sul\"",
+   "natural": "Já ao sul, ... / Só que, ao sul, ...",
+   "bad": [
+    [
+     "But to the south, the huge Jin Empire held northern China.",
+     "Mas ao sul, o enorme Império Jin dominava o norte da China."
+    ]
+   ],
+   "good": [
+    [
+     "But to the south, the huge Jin Empire held northern China.",
+     "Já ao sul, o enorme Império Jin dominava o norte da China."
+    ],
+    [
+     "But inside Bukhara stood a second fortress.",
+     "Mas dentro de Bukhara havia outra fortaleza."
+    ],
+    [
+     "But in front of any single city, the Mongols always had more.",
+     "Mas diante de cada cidade, os mongóis sempre eram mais."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-gerund-title",
+   "src": "^\\w+ing\\b[^.?!]{0,60}$",
+   "tgt": "^[\\wà-úÀ-Ú]+(ando|endo|indo)\\b[^.?!]{0,70}$",
+   "msg": "영어 -ing 제목(Crossing the desert)을 현재분사 제목으로 - 포르투갈어 제목은 명사나 \"Como ...\"",
+   "natural": "A travessia do deserto / Como cruzar o deserto",
+   "bad": [
+    [
+     "Crossing the Kyzylkum Desert",
+     "Atravessando o deserto de Kyzylkum"
+    ]
+   ],
+   "good": [
+    [
+     "Crossing the Kyzylkum Desert",
+     "A travessia do deserto de Kyzylkum"
+    ],
+    [
+     "Crossing the desert, the horses far outnumbered the men.",
+     "Atravessando o deserto, havia muito mais cavalos que homens."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-century",
+   "src": "\\b\\d{1,2}(st|nd|rd|th)[ -]c(\\.|entury\\b)",
+   "tgt": "\\b\\d{1,2}(st|nd|rd|th)[ -]c(\\.|entury\\b)|\\bséculo\\s+\\d{1,2}\\b|\\b\\d{1,2}[ºo°]\\s+século\\b",
+   "msg": "출처의 \"(13th c.)\"를 영어 그대로 두거나 \"século 13\"으로 - 세기는 로마 숫자",
+   "natural": "(século XIII)",
+   "bad": [
+    [
+     "The Secret History of the Mongols (13th c.)",
+     "A História Secreta dos Mongóis (13th c.)"
+    ],
+    [
+     "The Secret History of the Mongols (13th c.)",
+     "A História Secreta dos Mongóis (século 13)"
+    ]
+   ],
+   "good": [
+    [
+     "The Secret History of the Mongols (13th c.)",
+     "A História Secreta dos Mongóis (século XIII)"
+    ]
+   ]
+  },
+  {
+   "id": "enpt-only-so-much",
+   "src": "\\b(only|just) (\\w+ ){0,2}so (much|many)\\b",
+   "tgt": "\\bum tanto (de|d[aeo]s?)\\b",
+   "msg": "\"only so much\"(한계가 있다)를 \"um tanto de\"(약간)로 직역 - 뜻이 흐려짐",
+   "natural": "Cada um dá pouca água por dia / A água de cada poço é limitada",
+   "bad": [
+    [
+     "They only give so much water a day.",
+     "Só dão um tanto de água por dia."
+    ]
+   ],
+   "good": [
+    [
+     "They only give so much water a day.",
+     "Cada um dá pouca água por dia."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-unseen-by",
+   "src": "\\b(unseen|unnoticed|undetected|unheard) by\\b",
+   "tgt": "\\bsem\\s+(?:[\\wà-úÀ-Ú]+\\s+){0,3}(?:nenhum|nenhuma|ninguém)\\s+(?:ver|perceber|notar|ouvir)\\b",
+   "msg": "\"unseen by any city\"를 \"sem cidade nenhuma ver\"로 - sem 뒤 주어 + 동사원형은 어색함",
+   "natural": "sem que nenhuma cidade visse / sem ser visto por cidade nenhuma",
+   "bad": [
+    [
+     "slipped into the desert, unseen by any city",
+     "sumiu no deserto, sem cidade nenhuma ver"
+    ]
+   ],
+   "good": [
+    [
+     "slipped into the desert, unseen by any city",
+     "sumiu no deserto, sem que nenhuma cidade visse"
+    ]
+   ]
+  },
+  {
+   "id": "enpt-actually",
+   "src": "\\b\\w+ actually\\b",
+   "tgt": "(^|[.?!…]\\s+)Na verdade,",
+   "msg": "문장 가운데 \"actually\"(사실은 · 이미)를 문장 첫 \"Na verdade,\"로 - 앞말을 바로잡는 말로 들림",
+   "natural": "Aliás, ... / Ele já tinha até testado ...",
+   "bad": [
+    [
+     "He'd actually tested Xia once already, in 1205.",
+     "Na verdade, ele já tinha testado o Xia uma vez, em 1205."
+    ]
+   ],
+   "good": [
+    [
+     "He'd actually tested Xia once already, in 1205.",
+     "Aliás, ele já tinha testado o Xia uma vez, em 1205."
+    ],
+    [
+     "Actually, no.",
+     "Na verdade, não."
+    ]
+   ]
+  },
+  {
+   "id": "enpt-exactly-why",
+   "src": "\\bexactly (why|because)\\b|\\bthat('s| is) exactly\\b",
+   "tgt": "\\bexatamente (por isso|porque|por causa)\\b|\\bé exatamente\\b",
+   "msg": "\"that's exactly why\" 직역 - \"é exatamente por isso\"보다 justamente · mesmo",
+   "natural": "é justamente por isso / foi por isso mesmo",
+   "bad": [
+    [
+     "And that's exactly why they were scared.",
+     "E é exatamente por isso que tinham medo."
+    ]
+   ],
+   "good": [
+    [
+     "And that's exactly why they were scared.",
+     "E é justamente por isso que tinham medo."
+    ],
+    [
+     "He told him exactly where the army was.",
+     "Contou exatamente onde estava o exército."
+    ]
+   ]
+  }
+ ]
+}

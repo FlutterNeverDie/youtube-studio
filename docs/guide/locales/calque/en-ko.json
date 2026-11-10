@@ -1,0 +1,311 @@
+{
+ "_설명": "영어 원문 → 한국어 번역 짝 규칙 (2026-11-10). 원문(src)과 번역문(tgt)이 둘 다 맞을 때만 걸린다 - 영어를 그대로 옮긴 흔적. scripts/check-lines.py가 씀, 시험: check-lines.py --selftest",
+ "src": "en",
+ "tgt": "ko",
+ "rules": [
+  {
+   "id": "enko-lasts-to",
+   "src": "\\b(last|lasts|lasted|lasting|go|goes|went|going|run|runs)\\b[^.?!]*\\b(up to|to)\\b",
+   "tgt": "까지 (갑니다|가요|간다|가는|갑니)",
+   "msg": "\"lasts from A to B / goes up to\" 직역 - 시간 · 기간에 \"~까지 갑니다\"는 번역투",
+   "natural": "짧으면 A, 길면 B쯤 이어집니다 / B까지 이어지기도 합니다",
+   "bad": [
+    [
+     "A cramp lasts from a few seconds to ten minutes.",
+     "쥐는 몇 초에서 10분까지 갑니다."
+    ]
+   ],
+   "good": [
+    [
+     "A cramp lasts from a few seconds to ten minutes.",
+     "쥐는 짧으면 몇 초, 길면 10분쯤 이어집니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-called",
+   "src": "\\b(is|are|was|were) called\\b|\\bknown as\\b",
+   "tgt": "(라고|이라고) 불(립니다|린다|리는|렸)",
+   "msg": "\"is called\" 수동 직역 - 한국어는 \"~라고 합니다 / ~입니다\"",
+   "natural": "이걸 X라고 합니다 / 이게 X입니다",
+   "bad": [
+    [
+     "This is called a callus.",
+     "이것은 가골이라고 불립니다."
+    ]
+   ],
+   "good": [
+    [
+     "This is called a callus.",
+     "이게 바로 가골입니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-one-of-most",
+   "src": "\\bone of the (most|biggest|largest|best|strongest|few|main)\\b",
+   "tgt": "(가장|제일)\\s?[가-힣]+\\s?(것들?|[가-힣]+들?)?\\s?중\\s?(하나|한)",
+   "msg": "\"one of the most\" 직역 - \"가장 ~한 것 중 하나\"는 번역투",
+   "natural": "손꼽히는 ~ / 아주 ~한",
+   "bad": [
+    [
+     "It is one of the strongest acids.",
+     "가장 강한 산 중 하나입니다."
+    ]
+   ],
+   "good": [
+    [
+     "It is one of the strongest acids.",
+     "손꼽히게 강한 산입니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-by-agent",
+   "src": "\\b(is|are|was|were|be|been|being|get|gets|got)\\s+\\w+(ed|en|wn|t)\\b(\\s+\\w+)?\\s+by\\b",
+   "tgt": "에 의해(서)?",
+   "msg": "영어 수동태 by 직역 - \"~에 의해\"는 번역투, 행위자를 주어로",
+   "natural": "X가 ~합니다",
+   "bad": [
+    [
+     "The sugar is taken up by muscle.",
+     "당은 근육에 의해 흡수됩니다."
+    ]
+   ],
+   "good": [
+    [
+     "The sugar is taken up by muscle.",
+     "근육이 당을 빨아들입니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-pronoun",
+   "src": "(^|[.?!]\\s+)(It|This|That|They|These)\\b",
+   "tgt": "(^|[.?!]\\s*)(그것은|그것이|이것은|이것이|그들은|그들이|이들은|이들이)",
+   "msg": "영어 대명사 직역 - 한국어는 대명사를 빼거나 명사를 다시 씀",
+   "natural": "(주어 생략) / 이 산은 ~",
+   "bad": [
+    [
+     "It eats through metal.",
+     "그것은 금속도 녹입니다."
+    ]
+   ],
+   "good": [
+    [
+     "It eats through metal.",
+     "금속도 녹일 만큼 셉니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-step-number",
+   "src": "\\bStep (one|two|three|four|1|2|3|4)\\b|(^|[.?!]\\s+)(One|Two|Three|Four):",
+   "tgt": "(하나|둘|셋|넷|1단계|단계 (하나|둘|셋))\\s*[:：]|^(하나|둘|셋)\\.",
+   "msg": "\"Step one: / One:\" 직역 - 한국어는 \"먼저 / 첫째로 / 다음으로\"",
+   "natural": "먼저 ~, 다음으로 ~",
+   "bad": [
+    [
+     "Step one: find a guide.",
+     "하나: 길잡이를 찾습니다."
+    ]
+   ],
+   "good": [
+    [
+     "Step one: find a guide.",
+     "먼저 길잡이부터 찾습니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-you-generic",
+   "src": "\\byou(r|rs)?\\b",
+   "tgt": "당신",
+   "msg": "일반 주어 you를 \"당신\"으로 직역 - 내레이션에선 빼거나 \"우리\"",
+   "natural": "(생략) / 우리 몸은",
+   "bad": [
+    [
+     "Your stomach makes acid.",
+     "당신의 위는 산을 만듭니다."
+    ]
+   ],
+   "good": [
+    [
+     "Your stomach makes acid.",
+     "우리 위는 산을 만듭니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-thats-why",
+   "src": "\\b(That's|That is|This is|Here's) (why|how|the reason)\\b",
+   "tgt": "(그것이|이것이|그게|이게)\\s[^.?!]*?(이유|방법|까닭)(입니다|이다)",
+   "msg": "\"That's why\" 직역 - \"그것이 이유입니다\"는 번역투",
+   "natural": "그래서 ~합니다 / ~한 까닭이 여기 있습니다",
+   "bad": [
+    [
+     "That's why you feel cold.",
+     "그것이 추운 이유입니다."
+    ]
+   ],
+   "good": [
+    [
+     "That's why you feel cold.",
+     "그래서 춥게 느껴집니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-not-just",
+   "src": "\\b(isn't|is not|aren't|are not|wasn't) (just|only|simply|merely)\\b",
+   "tgt": "단순(히|한)|그저 [가-힣]+(이|가) 아닙",
+   "msg": "\"isn't just X\" 직역 - AI 틀이 번역으로 넘어옴",
+   "natural": "놀라운 사실 하나로 바로 엶",
+   "bad": [
+    [
+     "Diabetes isn't just too much sugar.",
+     "당뇨는 단순히 당이 많은 병이 아닙니다."
+    ]
+   ],
+   "good": [
+    [
+     "Diabetes isn't just too much sugar.",
+     "당뇨의 진짜 문제는 당을 못 쓰는 데 있습니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-heres-part",
+   "src": "\\bHere's the (strange|weird|catch|thing|problem|twist)\\b",
+   "tgt": "(여기|이게|이것이) (이상한|문제의|핵심|반전의|흥미로운) (점|부분|대목)",
+   "msg": "\"Here's the strange part\" 직역",
+   "natural": "그런데 이상합니다 / 문제는 ~",
+   "bad": [
+    [
+     "Here's the strange part.",
+     "여기 이상한 점이 있습니다."
+    ]
+   ],
+   "good": [
+    [
+     "Here's the strange part.",
+     "그런데 이상한 일이 생깁니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-of-chain",
+   "src": "\\bthe \\w+ of (the |your |a )?\\w+",
+   "tgt": "의 [가-힣]+의 ",
+   "msg": "\"the X of the Y\" 직역 - \"~의 ~의\" 겹치기",
+   "natural": "의를 하나 빼거나 문장을 나눔",
+   "bad": [
+    [
+     "the wall of the stomach of a person",
+     "사람의 위의 벽"
+    ]
+   ],
+   "good": [
+    [
+     "the wall of the stomach",
+     "위 벽"
+    ]
+   ]
+  },
+  {
+   "id": "enko-make-do",
+   "src": "\\bmakes? (\\w+ )?\\w+ (\\w+)\\b",
+   "tgt": "(하게|게) 만(듭니다|든다|들어|드는)",
+   "msg": "\"make X do\" 사역 직역 - 한국어는 주어를 바꿔 씀",
+   "natural": "X가 ~합니다",
+   "bad": [
+    [
+     "It makes your heart beat faster.",
+     "그것은 심장을 더 빨리 뛰게 만듭니다."
+    ]
+   ],
+   "good": [
+    [
+     "It makes your heart beat faster.",
+     "심장이 더 빨리 뜁니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-lasts",
+   "src": "\\blast(s|ed|ing)?\\b",
+   "tgt": "지속(됩니다|된다|되는|돼)",
+   "msg": "\"last\"를 \"지속됩니다\"로 직역 - 말로는 \"이어집니다 / 갑니다\"",
+   "natural": "이어집니다",
+   "bad": [
+    [
+     "The pain lasts for days.",
+     "통증은 며칠 동안 지속됩니다."
+    ]
+   ],
+   "good": [
+    [
+     "The pain lasts for days.",
+     "아픔은 며칠씩 이어집니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-noun-name",
+   "src": "(^|[.?!]\\s+)(Its name|The name|Meet)\\b[^.?!]*[.?!]",
+   "tgt": "(이름은|이름이) [^ .]+\\.",
+   "msg": "\"Its name: X.\" 명사 조각 직역",
+   "natural": "이걸 X라고 합니다",
+   "bad": [
+    [
+     "Its name: acetaldehyde.",
+     "이름은 아세트알데하이드."
+    ]
+   ],
+   "good": [
+    [
+     "Its name: acetaldehyde.",
+     "이 물질을 아세트알데하이드라고 합니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-seems",
+   "src": "\\b(seems?|seemed|appears?|appeared) to\\b",
+   "tgt": "(것|걸)으?로 (보입니다|보여요|보인다|보이)",
+   "msg": "\"seems to\" 직역 - 말하는 사람이 없는 \"~것으로 보입니다\"는 보도문 · 번역투. 확실하지 않다는 말은 누가 그렇게 보는지 밝힌다",
+   "natural": "과학자들은 ~라고 봅니다 / 아직 다 밝혀지진 않았지만, ~",
+   "bad": [
+    [
+     "A tired muscle seems to get the signal to squeeze nonstop.",
+     "근육이 지치면 조이라는 신호가 끊이지 않는 걸로 보입니다."
+    ]
+   ],
+   "good": [
+    [
+     "A tired muscle seems to get the signal to squeeze nonstop.",
+     "근육이 지치면, 신경이 '조여!' 하는 명령을 멈추지 못합니다."
+    ]
+   ]
+  },
+  {
+   "id": "enko-signal-to",
+   "src": "\\b(signal|order|command|message|instruction)s? to \\w+",
+   "tgt": "[가-힣]+(이라는|으라는|라는) (신호|명령|지시|메시지)",
+   "msg": "\"the signal to X\" 직역 - \"조이라는 신호\"처럼 명령형을 '~라는'으로 묶으면 귀로는 이름(조이)처럼 들린다. 누가 보내는지(주어)도 빠진다",
+   "natural": "신경이 '조여!' 하고 계속 명령합니다 / ~하라고 신호를 보냅니다",
+   "bad": [
+    [
+     "A tired muscle seems to get the signal to squeeze nonstop.",
+     "근육이 지치면 조이라는 신호가 끊이지 않습니다."
+    ]
+   ],
+   "good": [
+    [
+     "A tired muscle seems to get the signal to squeeze nonstop.",
+     "근육이 지치면, 신경이 '조여!' 하고 쉬지 않고 명령합니다."
+    ]
+   ]
+  }
+ ]
+}

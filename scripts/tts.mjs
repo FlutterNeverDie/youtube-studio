@@ -47,7 +47,8 @@ async function say(text, out, voice = "en-US-Chirp3-HD-Charon", rate = "1") {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
     body: JSON.stringify({
-      input: { text },
+      // [pause short] · [pause] · [pause long] 같은 쉼 표시가 있으면 markup으로 보낸다 (Chirp 3 HD가 그 자리에서 직접 쉼, 2026-11-09)
+      input: /\[pause( short| long)?\]/.test(text) ? { markup: text } : { text },
       voice: { languageCode: voice.split("-").slice(0, 2).join("-"), name: voice },
       // 원래 음질(24kHz) 그대로, 6dB 작게 받아서 소리 끝이 깨지지(클리핑) 않게
       audioConfig: { audioEncoding: "LINEAR16", sampleRateHertz: 24000, speakingRate: Number(rate), volumeGainDb: -6 },
